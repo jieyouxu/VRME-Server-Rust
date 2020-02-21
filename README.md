@@ -1,0 +1,38 @@
+# VRME-Server
+
+VRME server implementation in Rust.
+
+## Configuration
+
+Configuration is handled through [mehcode/config-rs](https://github.com/mehcode/config-rs/blob/master/examples/global/Cargo.toml).
+
+Copy the `config.example.toml` into `config.toml` to customize the server
+settings.
+
+```bash
+$ cp config.example.toml config.toml
+```
+
+## Logging
+
+We utilize [rust-lang/log](https://github.com/rust-lang/log) and
+[seanmonstar/pretty-env-logger](https://github.com/seanmonstar/pretty-env-logger)
+to handle logging.
+
+To specify different logging levels, the `RUST_LOG` environment variable should
+be configured to one of the options below (ordered by decreasing verbosity):
+
+1. `RUST_LOG=trace`.
+2. `RUST_LOG=debug`.
+3. `RUST_LOG=info`
+4. `RUST_LOG=warn`
+5. `RUST_LOG=error`
+
+Or leave `RUST_LOG` empty to disable logging output.
+
+For example:
+
+```bash
+$ RUST_LOG=debug cargo run
+```
+
