@@ -4,8 +4,6 @@ VRME server implementation in Rust.
 
 ## Configuration
 
-Configuration is handled through [mehcode/config-rs](https://github.com/mehcode/config-rs/blob/master/examples/global/Cargo.toml).
-
 Copy the `config.example.toml` into `config.toml` to customize the server
 settings.
 
