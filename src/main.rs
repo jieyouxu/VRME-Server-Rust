@@ -25,14 +25,10 @@ fn main() {
 }
 
 fn setup_log_level_env() {
-    let mut log_level = String::from(DEFAULT_LOG_LEVEL);
-
-    for (env_key, env_value) in env::vars() {
-        if env_key.eq_ignore_ascii_case("LOG_LEVEL") {
-            log_level = env_value;
-        }
-    }
-
+    let log_level = env::vars()
+        .find(|(key, _)| key.eq_ignore_ascii_case("LOG_LEVEL"))
+        .map(|(_, val)| val)
+        .unwrap_or(DEFAULT_LOG_LEVEL.to_owned());
     env::set_var("LOG_LEVEL", &log_level);
     info!("using LOG_LEVEL = {}", &log_level);
 }
