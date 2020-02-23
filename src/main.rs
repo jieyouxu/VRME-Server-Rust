@@ -10,7 +10,8 @@ fn main() {
     setup_log_level_env();
     pretty_env_logger::init();
 
-    let cfg = match config::get_config("../../config.toml") {
+    info!("executable current directory = {:?}", env::current_dir().unwrap());
+    let cfg = match config::get_config("config.toml") {
         Ok(c) => c,
         Err(e) => {
             warn!("failed to read config");
