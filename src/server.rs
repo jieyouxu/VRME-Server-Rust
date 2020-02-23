@@ -26,5 +26,5 @@ fn make_socket_addr(config: &config::Config) -> net::SocketAddr {
 
 #[get("/")]
 pub(crate) async fn home() -> impl Responder {
-    format!("server is running!")
+    "server is running...".to_string()
 }
