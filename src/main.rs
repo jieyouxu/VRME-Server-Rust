@@ -4,7 +4,6 @@ use pretty_env_logger;
 use std::env;
 
 mod config;
-mod endpoints;
 mod server;
 
 const DEFAULT_LOG_LEVEL: &str = "warn";
