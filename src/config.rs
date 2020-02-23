@@ -1,4 +1,4 @@
-use log::{debug, warn};
+use log::{error, info};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::net::{IpAddr, Ipv4Addr};
@@ -8,8 +8,8 @@ use toml;
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub(crate) struct Config {
-    server: ServerConfig,
-    logging: LoggingConfig,
+    pub(crate) server: ServerConfig,
+    pub(crate) logging: LoggingConfig,
 }
 
 impl Default for Config {
@@ -25,8 +25,8 @@ impl Default for Config {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub(crate) struct ServerConfig {
-    address: IpAddr,
-    port: u16,
+    pub(crate) address: IpAddr,
+    pub(crate) port: u16,
 }
 
 impl Default for ServerConfig {
@@ -42,7 +42,7 @@ impl Default for ServerConfig {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub(crate) struct LoggingConfig {
-    level: LogLevel,
+    pub(crate) level: LogLevel,
 }
 
 impl Default for LoggingConfig {
@@ -88,18 +88,19 @@ pub(crate) fn get_config(path: &str) -> Result<Config, ConfigError> {
 
 fn read_config_file_from_path(path: &str) -> Result<String, ConfigError> {
     let path = Path::new(path);
+    info!("trying to read config from {:?}", path);
     fs::read_to_string(path).map_err(|e| {
-        debug!("failed to read {:#?}", path);
-        debug!("{:#?}", e);
+        error!("failed to read {:#?}", path);
+        error!("{:#?}", e);
         ConfigError::IOError
     })
 }
 
 fn parse_into_config(raw: &str) -> Result<Config, ConfigError> {
     toml::from_str::<Config>(raw).map_err(|e| {
-        warn!("illegal config format");
-        debug!("{:#?}", raw);
-        debug!("{:#?}", e);
+        error!("illegal config format");
+        error!("{:#?}", raw);
+        error!("{:#?}", e);
         ConfigError::IllFormed
     })
 }
