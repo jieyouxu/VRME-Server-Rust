@@ -6,6 +6,8 @@ use std::env;
 use std::net;
 
 mod config;
+mod endpoints;
+mod server;
 
 const DEFAULT_LOG_LEVEL: &'static str = "warn";
 
@@ -31,7 +33,7 @@ fn main() {
 
     debug!("config given = {:#?}", &*CONFIG);
 
-    init_server(&CONFIG).unwrap();
+    server::start_server(&CONFIG).unwrap();
 }
 
 fn setup_log_level_env() {
@@ -43,28 +45,3 @@ fn setup_log_level_env() {
     info!("using LOG_LEVEL = {}", &log_level);
 }
 
-#[actix_rt::main]
-async fn init_server(config: &'static config::Config) -> std::io::Result<()> {
-    info!(
-        "starting server at {}:{}",
-        config.server.address, config.server.port
-    );
-    println!(
-        "starting server at {}:{}",
-        config.server.address, config.server.port
-    );
-    HttpServer::new(|| App::new().service(home))
-        .bind(make_socket_addr(config))?
-        .run()
-        .await
-}
-
-fn make_socket_addr(config: &config::Config) -> net::SocketAddr {
-    let (ip_addr, port) = (config.server.address, config.server.port);
-    net::SocketAddr::new(ip_addr, port)
-}
-
-#[get("/")]
-async fn home() -> impl Responder {
-    format!("server is running!")
-}
