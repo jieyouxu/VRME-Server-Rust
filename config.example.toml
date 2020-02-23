@@ -5,10 +5,3 @@ port = 8080
 [logging]
 level = "debug"
 
-# Do we want to log requests made to the server?
-[request_logging]
-output_to_file = true
-path = "../../logs/"
-level = "error"
-file_rotation = true
-
