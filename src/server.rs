@@ -6,10 +6,10 @@ use std::net;
 #[actix_rt::main]
 pub(crate) async fn start_server(config: &'static config::Config) -> std::io::Result<()> {
     info!(
-        "starting server at {}:{}",
+        "Starting server at {}:{}",
         config.server.address, config.server.port
     );
-   HttpServer::new(|| App::new().service(home))
+    HttpServer::new(|| App::new().service(home))
         .bind(make_socket_addr(config))?
         .run()
         .await

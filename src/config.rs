@@ -5,6 +5,7 @@ use std::net::{IpAddr, Ipv4Addr};
 use std::path::Path;
 use toml;
 
+/// Configuration for the server.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub(crate) struct Config {
@@ -88,19 +89,19 @@ pub(crate) fn get_config(path: &str) -> Result<Config, ConfigError> {
 
 fn read_config_file_from_path(path: &str) -> Result<String, ConfigError> {
     let path = Path::new(path);
-    info!("trying to read config from {:?}", path);
+    info!("Trying to read config from {:?}", path);
     fs::read_to_string(path).map_err(|e| {
-        error!("failed to read {:#?}", path);
-        error!("{:#?}", e);
+        error!("Failed to read {:#?}", path);
+        error!("Error: {:#?}", e);
         ConfigError::IOError
     })
 }
 
 fn parse_into_config(raw: &str) -> Result<Config, ConfigError> {
     toml::from_str::<Config>(raw).map_err(|e| {
-        error!("illegal config format");
-        error!("{:#?}", raw);
-        error!("{:#?}", e);
+        error!("Illegal config format!");
+        error!("Raw config: {:#?}", raw);
+        error!("Error: {:#?}", e);
         ConfigError::IllFormed
     })
 }
