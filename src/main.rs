@@ -6,7 +6,7 @@ use std::env;
 mod config;
 mod server;
 
-const DEFAULT_LOG_LEVEL: &str = "warn";
+const DEFAULT_LOG_LEVEL: &str = "info";
 
 lazy_static! {
     static ref CONFIG: config::Config = match config::get_config("config.toml") {
@@ -39,5 +39,7 @@ fn setup_log_level_env() {
         .map(|(_, val)| val)
         .unwrap_or_else(|| DEFAULT_LOG_LEVEL.to_owned());
     env::set_var("LOG_LEVEL", &log_level);
+    env::set_var("RUST_LOG", &log_level);
     info!("using LOG_LEVEL = {}", &log_level);
+    debug!("using RUST_LOG = {}", &log_level);
 }
