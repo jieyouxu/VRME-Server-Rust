@@ -1,4 +1,4 @@
-use log::{error, info};
+use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::net::{IpAddr, Ipv4Addr};
@@ -92,7 +92,7 @@ fn read_config_file_from_path(path: &str) -> Result<String, ConfigError> {
     info!("Trying to read config from {:?}", path);
     fs::read_to_string(path).map_err(|e| {
         error!("Failed to read {:#?}", path);
-        error!("Error: {:#?}", e);
+        debug!("Error: {:#?}", e);
         ConfigError::IOError
     })
 }
@@ -101,7 +101,7 @@ fn parse_into_config(raw: &str) -> Result<Config, ConfigError> {
     toml::from_str::<Config>(raw).map_err(|e| {
         error!("Illegal config format!");
         error!("Raw config: {:#?}", raw);
-        error!("Error: {:#?}", e);
+        debug!("Error: {:#?}", e);
         ConfigError::IllFormed
     })
 }
