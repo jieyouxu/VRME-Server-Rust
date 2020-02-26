@@ -1,5 +1,5 @@
 [package]
-name = "vrme-server-rust"
+name = "vrme-server"
 version = "0.1.0"
 authors = ["许杰友 Jieyou Xu (Joe) <jieyouxu@outlook.com>"]
 edition = "2018"

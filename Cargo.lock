@@ -1491,7 +1491,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "vrme-server-rust"
+name = "vrme-server"
 version = "0.1.0"
 dependencies = [
  "actix-rt",
