@@ -4,7 +4,9 @@ use log::info;
 use std::net;
 
 #[actix_rt::main]
-pub(crate) async fn start(config: &'static config::Config) -> std::io::Result<()> {
+pub(crate) async fn start(
+    config: &'static config::Config,
+) -> std::io::Result<()> {
     info!(
         "Starting server at {}:{}",
         config.server.address, config.server.port
