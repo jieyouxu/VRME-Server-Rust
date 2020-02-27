@@ -1,5 +1,8 @@
 # VRME-Server
 
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/jieyouxu/VRME-Server-Rust?logo=GitHub&logoColor=lightblue&style=flat-square)
+![GitHub](https://img.shields.io/github/license/jieyouxu/VRME-Server-Rust?color=green&style=flat-square)
+
 VRME server implementation in Rust.
 
 ## Configuration
@@ -10,6 +13,11 @@ settings.
 ```bash
 $ cp config.example.toml config.toml
 ```
+
+## API Documentation
+
+Available under `docs/` in markdown format, or view the rendered version at
+[jieyouxu/VRME-Server-Rust](https://jieyouxu.github.io/VRME-Server-Rust/).
 
 ## Logging
 
