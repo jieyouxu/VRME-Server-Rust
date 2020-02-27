@@ -5,7 +5,7 @@ Users need to create an account to use the VRME API.
 
 ## Create an Account by Registering
 
-```
+```http
 POST /register
 ```
 
