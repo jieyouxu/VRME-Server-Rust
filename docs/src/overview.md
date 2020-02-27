@@ -1,5 +1,7 @@
 # Overview
 
+**API Version**: `1.0.0`
+
 The is the documentation for the Virtual Reality Meeting Environment server, 
 which is responsible for hosting API endpoints for three subsystems:
 
