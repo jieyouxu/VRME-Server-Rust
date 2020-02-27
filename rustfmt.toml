@@ -1,0 +1,10 @@
+# Need unstable features for some options
+unstable_features = true
+
+# Comments
+comment_width = 80
+wrap_comments = true
+
+# Max width
+max_width = 80
+
