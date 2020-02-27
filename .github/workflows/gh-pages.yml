@@ -14,12 +14,15 @@ jobs:
       - name: Setup mdBook
         uses: peaceiris/actions-mdbook@v1
         with:
-          mdbook-version: '0.3.5'
+          mdbook-version: 'latest'
+          working-directory: 'docs'
 
       - run: mdbook build
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v2
+        with:
+          working-directory: 'docs'
         env:
           PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
           PUBLISH_BRANCH: gh-pages
