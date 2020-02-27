@@ -54,7 +54,7 @@ fn init_logger() {
     builder.init();
 }
 
-fn colored_time<'a>(style: &'a mut Style) -> StyledValue<'a, String> {
+fn colored_time(style: &mut Style) -> StyledValue<String> {
     let time = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
     style.set_color(Color::Rgb(50, 50, 50)).value(time)
 }

@@ -23,7 +23,8 @@ const DEFAULT_CONFIG_PATH: &str = "config.toml";
 /// Obtain the config file path either from the environment variable
 /// `CONFIG_PATH`, or defaults to `DEFAULT_CONFIG_PATH`.
 fn config_path() -> String {
-    std::env::var("CONFIG_PATH").unwrap_or(DEFAULT_CONFIG_PATH.to_string())
+    std::env::var("CONFIG_PATH")
+        .unwrap_or_else(|_| DEFAULT_CONFIG_PATH.to_string())
 }
 
 /// Entry point to start the server.
