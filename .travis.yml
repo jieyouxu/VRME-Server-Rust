@@ -14,7 +14,3 @@ before_script:
 
 script:
     - mdbook build docs
-
-before_install:
-    - cd docs
-
