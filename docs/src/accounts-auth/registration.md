@@ -38,8 +38,8 @@ Required:
 struct RegistrationRequest {
 	first_name: String,
 	last_name: String,
-	email: Email,
-	hashed_password: HashedPassword,
+	email: String,
+	hashed_password: String,
 }
 ```
 
@@ -49,6 +49,10 @@ Remarks:
   email address.
 - See requirements for `HashedPassword` at
   [Remark: Password Security](./password.md).
+	* Must be hashed client-side with a **strong** hash function such as
+	  `SHA-256`.
+	* Must be hashed to exactly \\( 32 \\) bytes long.
+	* Must be Base64-encoded to \\( 43 \\) Base64 characters long.
 
 ### Responses 
 

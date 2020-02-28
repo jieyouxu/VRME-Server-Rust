@@ -23,11 +23,11 @@ We require that the `password_hashed_1` be
 		\log_2(64) = 6
 	\\]
 
-- \\( 32 \\) bytes or \\( 256 \\) bits can be represented by \\( 342 \\) base64
+- \\( 32 \\) bytes or \\( 256 \\) bits can be represented by \\( 43 \\) base64
   characters.
 
 	\\[
-		\left\lceil \frac{4 (256)}{ 3 } \right\rceil = 342\ \text{base64 characters} 
+		\left\lceil \frac{4 (256)}{ 3 } \right\rceil = 43\ \text{base64 characters} 
 	\\]
 
 The client-side must **not** log or store the password which is entered by the
@@ -36,7 +36,7 @@ user in plaintext form.
 ## Server-side
 
 We require that the client-side send a Base64-encoded `password_hashed_1` which
-is required to be exactly \\( 342 \\) characters long.
+is required to be exactly \\( 43 \\) Base64 characters long.
 
 When the server receives the password hashed by the client `password_hashed_1`,
 we will use [PBKDF2](https://tools.ietf.org/html/rfc2898)
