@@ -4,6 +4,7 @@ use log::{debug, error};
 mod config;
 mod logger;
 mod server;
+mod account;
 
 lazy_static! {
     /// Configuration for the VRME server.
