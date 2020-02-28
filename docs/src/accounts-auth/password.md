@@ -27,7 +27,7 @@ We require that the `password_hashed_1` be
   characters.
 
 	\\[
-		\left\lceil \frac{4 (256)}{ 3 } \right\rceil = 43\ \text{base64 characters} 
+		\left\lceil \frac{4 (32)}{ 3 } \right\rceil = 43\ \text{base64 characters} 
 	\\]
 
 The client-side must **not** log or store the password which is entered by the
