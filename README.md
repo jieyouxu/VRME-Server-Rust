@@ -3,6 +3,7 @@
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/jieyouxu/VRME-Server-Rust?logo=GitHub&style=flat-square)
 ![GitHub](https://img.shields.io/github/license/jieyouxu/VRME-Server-Rust?style=flat-square)
 ![GitHub deployments](https://img.shields.io/github/deployments/jieyouxu/VRME-Server-Rust/github-pages?label=documentation%20deployment&logo=GitHub&style=flat-square)
+[![unsafe forbidden](https://img.shields.io/badge/unsafe-forbidden-success.svg?style=flat-square)](https://github.com/rust-secure-code/safety-dance/)
 
 VRME server implementation in Rust.
 
