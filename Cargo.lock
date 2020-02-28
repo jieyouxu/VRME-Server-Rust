@@ -1541,7 +1541,6 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "toml",
- "validator",
  "validator_derive",
 ]
 
