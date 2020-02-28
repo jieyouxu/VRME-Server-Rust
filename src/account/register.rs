@@ -25,9 +25,9 @@ pub(crate) struct RegistrationRequest {
     ///
     /// Recommended to use `SHA-256` or stronger hash function.
     ///
-    /// It is required that the hashed password have exactly 32-bytes and Base64
-    /// encoded, which means that it must have exactly `Ceil(4 * 32 / 3) == 43`
-    /// Base64 characters.
+    /// It is required that the hashed password have exactly 32-bytes and
+    /// Base64 encoded, which means that it must have exactly `Ceil(4 * 32
+    /// / 3) == 43` Base64 characters.
     ///
     /// # References
     ///

@@ -1,10 +1,10 @@
 use lazy_static::lazy_static;
 use log::{debug, error};
 
+mod account;
 mod config;
 mod logger;
 mod server;
-mod account;
 
 lazy_static! {
     /// Configuration for the VRME server.
