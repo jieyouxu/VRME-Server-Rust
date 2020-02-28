@@ -7,6 +7,7 @@ mod account;
 mod config;
 mod logger;
 mod server;
+mod types;
 
 lazy_static! {
     /// Configuration for the VRME server.

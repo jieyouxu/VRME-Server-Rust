@@ -1,3 +1,4 @@
+use crate::types::email::Email;
 use actix_web::{web, HttpResponse};
 use log::debug;
 use serde::{Deserialize, Serialize};
@@ -18,7 +19,7 @@ pub(crate) struct RegistrationRequest {
 
     /// A user must supply a valid email conforming with
     /// [RFC 2822](https://tools.ietf.org/html/rfc2822).
-    pub(crate) email: String,
+    pub(crate) email: Email,
 
     /// A hashed password. The client is responsible for sending the entered
     /// password in hashed form.
