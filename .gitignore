@@ -1,10 +1,9 @@
 ### Rust ###
 
 # Build output
-/target
+target/
 
 ### Project ###
 
 # Configuration
 config.toml
-
