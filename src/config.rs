@@ -1,5 +1,6 @@
 use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
+use std::fmt;
 use std::fs;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::Path;
@@ -11,6 +12,7 @@ use toml;
 pub(crate) struct Config {
     pub(crate) server: ServerConfig,
     pub(crate) logging: LoggingConfig,
+    pub(crate) database: DatabaseConfig,
 }
 
 impl Default for Config {
@@ -18,6 +20,7 @@ impl Default for Config {
         Self {
             server: ServerConfig::default(),
             logging: LoggingConfig::default(),
+            database: DatabaseConfig::default(),
         }
     }
 }
@@ -33,7 +36,7 @@ pub(crate) struct ServerConfig {
 impl Default for ServerConfig {
     fn default() -> Self {
         Self {
-            address: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+            address: IpAddr::V4(Ipv4Addr::LOCALHOST),
             port: 8080,
         }
     }
@@ -71,6 +74,41 @@ pub(crate) enum LogLevel {
     Off,
 }
 
+/// Database configuration.
+#[derive(PartialEq, Serialize, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub(crate) struct DatabaseConfig {
+    pub(crate) username: String,
+    pub(crate) password: String,
+    pub(crate) netloc: IpAddr,
+    pub(crate) port: u16,
+    pub(crate) database_name: String,
+}
+
+impl fmt::Debug for DatabaseConfig {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("DatabaseConfig")
+            .field("username", &self.username)
+            .field("password", &"*".repeat(self.password.len()))
+            .field("netlock", &self.netloc)
+            .field("port", &self.port)
+            .field("database_name", &self.database_name)
+            .finish()
+    }
+}
+
+impl Default for DatabaseConfig {
+    fn default() -> Self {
+        Self {
+            username: "admin".to_string(),
+            password: "password".to_string(),
+            netloc: IpAddr::V4(Ipv4Addr::LOCALHOST),
+            port: 5432,
+            database_name: "development".to_string(),
+        }
+    }
+}
+
 /// Error cases for trying to read the configuration file.
 #[derive(Debug, PartialEq)]
 pub(crate) enum ConfigError {
@@ -100,7 +138,8 @@ fn read_config_file_from_path(path: &str) -> Result<String, ConfigError> {
 fn parse_into_config(raw: &str) -> Result<Config, ConfigError> {
     toml::from_str::<Config>(raw).map_err(|e| {
         error!("Illegal config format!");
-        error!("Raw config: {:#?}", raw);
+        error!("Raw config:");
+        error!("\n{}", raw);
         debug!("Error: {:#?}", e);
         ConfigError::IllFormed
     })

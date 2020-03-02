@@ -54,7 +54,7 @@ Remarks:
 	* Must be hashed to exactly \\( 32 \\) bytes long.
 	* Must be Base64-encoded to \\( 43 \\) Base64 characters long.
 
-### Responses 
+### Responses
 
 #### Success: `201 Created`
 
@@ -70,6 +70,7 @@ If the request lacks information, `400 Bad Request` is returned with:
 
 ```rust
 struct MissingRequiredFieldsResponse {
+	cause: String,
 	message: String,
 }
 ```
@@ -79,6 +80,7 @@ HTTP/1.1 400 Bad Request
 Content-Type: application/json
 
 {
+	"cause": "missing-fields",
 	"message": "missing required fields"
 }
 ```
@@ -87,6 +89,7 @@ If the request contains malformed JSON, `400 Bad Request` is returned with:
 
 ```rust
 struct MalformedJsonResponse {
+	cause: String,
 	message: String,
 }
 ```
@@ -96,6 +99,7 @@ HTTP/1.1 400 Bad Request
 Content-Type: application/json
 
 {
+	"cause": "malformed-request",
 	"message": "malformed JSON"
 }
 ```
@@ -104,6 +108,7 @@ Content-Type: application/json
 
 ```rust
 struct AccountExistsReponse {
+	cause: String,
 	message: String,
 }
 ```
@@ -113,10 +118,10 @@ HTTP/1.1 409 Conflict
 Content-Type: application/json
 
 {
-	"message": "an account with the provided email address already exists"
+	"cause": "account-exists",
+	"message": "an account with the provided email already exists, login instead"
 }
 ```
 
 This is returned when there is an existing account with the supplied `email`.
 The client is recommended to prompt the user to login instead.
-

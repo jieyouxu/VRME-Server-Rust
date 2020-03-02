@@ -5,6 +5,7 @@ use log::{debug, error};
 
 mod account;
 mod config;
+mod db;
 mod logger;
 mod server;
 mod types;

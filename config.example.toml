@@ -1,7 +1,14 @@
 [server]
-address = "192.168.1.1"
+address = "127.0.0.1"
 port = 8080
 
 [logging]
 level = "debug"
 
+[database]
+# DATABASE_URL=postgres://{user}:{password}@{hostname}:{port}/{database-name}
+username = "dev"
+password = "dev"
+netloc = "localhost"
+port = 5432
+database_name = "vrme_server"

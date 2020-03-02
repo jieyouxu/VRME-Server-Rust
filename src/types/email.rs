@@ -7,7 +7,7 @@ use validator::validate_email;
 /// [RFC 5322](https://tools.ietf.org/html/rfc5322) but is not heavily validated
 /// against the specification (the best way to check is probably to try to send
 /// an email address).
-#[derive(Debug, Serialize, PartialEq)]
+#[derive(Debug, Serialize, PartialEq, Clone)]
 pub(crate) struct Email(String);
 
 pub(crate) struct EmailParseError;
@@ -19,8 +19,12 @@ impl std::fmt::Display for EmailParseError {
 }
 
 impl Email {
-    fn new(s: &str) -> Result<Self, EmailParseError> {
+    pub(crate) fn new(s: &str) -> Result<Self, EmailParseError> {
         s.parse()
+    }
+
+    pub(crate) fn email(&self) -> &str {
+        &self.0
     }
 }
 
