@@ -29,7 +29,7 @@ impl HashedPassword {
         s.parse()
     }
 
-    /// Extract the password as `String`.
+    /// Extract the password.
     pub(crate) fn password(&self) -> &str {
         &self.0
     }

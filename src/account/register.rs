@@ -7,7 +7,6 @@ use rand::Rng;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::str;
-use tokio::task;
 
 /// Required information for when a user wishes to register a new account.
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
@@ -158,9 +157,17 @@ async fn generate_salt() -> Option<[u8; SALT_LENGTH]> {
     match web::block(move || {
         rand::thread_rng().fill(&mut buffer);
         Ok::<_, ()>(())
-    }).await {
-        Ok(_) => (),
-        Err(_) => { return None; }
+    })
+    .await
+    {
+        Ok(_) => {
+            debug!("successfully generated salt");
+        },
+        Err(e) => {
+            debug!("failed to generate salt");
+            debug!("{:#?}", &e);
+            return None;
+        }
     }
 
     Some(buffer)
