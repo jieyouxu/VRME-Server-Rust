@@ -162,7 +162,7 @@ async fn generate_salt() -> Option<[u8; SALT_LENGTH]> {
     {
         Ok(_) => {
             debug!("successfully generated salt");
-        },
+        }
         Err(e) => {
             debug!("failed to generate salt");
             debug!("{:#?}", &e);

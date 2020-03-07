@@ -5,7 +5,8 @@ use log::debug;
 
 /// A database connection pool so we don't have to establish a brand new
 /// connection on each request. Uses `diesel::r2d2` for managing pooling.
-pub(crate) type DatabaseConnectionPool = r2d2::Pool<ConnectionManager<PgConnection>>;
+pub(crate) type DatabaseConnectionPool =
+    r2d2::Pool<ConnectionManager<PgConnection>>;
 
 /// Constructs a database connection URL.
 pub(crate) fn construct_database_connection_url(
@@ -34,7 +35,9 @@ pub(crate) fn construct_database_connection_url(
 }
 
 /// Establish a connection to a PostgreSQL database at the given `database_url`.
-pub(crate) fn setup_database_connection_pool(database_url: &str) -> DatabaseConnectionPool {
+pub(crate) fn setup_database_connection_pool(
+    database_url: &str,
+) -> DatabaseConnectionPool {
     debug!(
         "Trying to connect to PostgreSQL database at {}",
         database_url
