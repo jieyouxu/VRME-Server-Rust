@@ -9,6 +9,18 @@ use serde_json::json;
 use std::str;
 
 /// Required information for when a user wishes to register a new account.
+///
+/// ```json
+/// POST /register HTTP/1.1
+/// Content-Type: application/json
+///
+/// {
+///     "first_name": "John",
+///     "last_name": "Doe",
+///     "email": "no-reply@example.com",
+///     "hashed_password": "1234567890123456789012345678901234567890123"
+/// }
+/// ```
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub(crate) struct RegistrationRequest {
     pub(crate) first_name: String,
