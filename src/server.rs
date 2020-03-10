@@ -35,12 +35,12 @@ pub(crate) async fn start(
         config.server.address, config.server.port
     );
 
-    // TODO: use the connection pool
-    let _pool = db::setup_database_connection_pool(&config.database);
+    let pool = db::setup_database_connection_pool(&config.database).await;
 
-    HttpServer::new(|| {
+    HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
+            .data(pool.clone())
             .app_data(
                 web::JsonConfig::default()
                     .error_handler(malformed_json_error_handler),

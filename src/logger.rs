@@ -18,6 +18,10 @@ fn setup_log_level_env() {
         .map(|(_, val)| val)
         .unwrap_or_else(|| DEFAULT_LOG_LEVEL.to_owned());
     env::set_var("LOG_LEVEL", &log_level);
+    env::set_var(
+        "RUST_LOG",
+        format!("actix_web={lvl},diesel={lvl}", lvl = &log_level),
+    );
     info!("Using LOG_LEVEL = {}", &log_level);
 }
 
