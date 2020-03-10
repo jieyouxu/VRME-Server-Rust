@@ -60,16 +60,19 @@ struct RegistrationInfo {
 ///
 /// * `req` - HTTP request must be a valid JSON of `RegistrationRequest`.
 ///
-/// # Success: `201 Created`
+/// # Responses
+///
+/// ## Success: `201 Created`
 ///
 /// If the account was successfuly created.
 ///
-/// # Failure: `400 Bad Request` (Malformed JSON)
+/// ## Failure: `400 Bad Request` (Malformed JSON)
 ///
 /// If the request body was malformed.
 ///
 /// ```http
 /// HTTP/1.1 400 Bad Request
+/// Content-Type: application/json
 ///
 /// {
 ///     "message": "malformed request body"
