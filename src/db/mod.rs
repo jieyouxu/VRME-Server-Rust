@@ -1,18 +1,13 @@
 use crate::config::DatabaseConfig;
 use diesel::connection::Connection;
 use diesel::pg::PgConnection;
-use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
-use log::{debug, info};
+use diesel::r2d2::{ConnectionManager, Pool};
+use log::debug;
 
 /// A Postgres database connection pool. Connections made to the database can be
 /// reused from the pool across multiple requests to avoid the overhead of
 /// repeatedly establishing and dropping connections to the database.
 pub type DbPool = Pool<ConnectionManager<PgConnection>>;
-
-/// A connection taken from the `DbPool`.
-pub type DbPooledConnection = PooledConnection<ConnectionManager<PgConnection>>;
-
-const DEFAULT_CONNECTION_POOL_MAX_SIZE: u32 = 15;
 
 /// Setup a connection pool to Postgres so we can reuse connection instead of
 /// having to establish a new connection per request.

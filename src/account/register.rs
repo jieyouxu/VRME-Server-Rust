@@ -47,7 +47,7 @@ pub(crate) struct RegistrationRequest {
 
 /// The processed and validated information from a given `RegistrationRequest`.
 #[derive(Debug, PartialEq)]
-struct RegistrationInfo {
+struct ValidatedRegistrationInfo {
     first_name: String,
     last_name: String,
     email: Email,
@@ -129,7 +129,9 @@ pub(crate) async fn handle_register_user(
 /// / 3) == 43` Base64 characters.
 const BASE64_ENCODED_PASSWORD_LENGTH: usize = 43;
 
-fn validate_request(req: &RegistrationRequest) -> Option<RegistrationInfo> {
+fn validate_request(
+    req: &RegistrationRequest,
+) -> Option<ValidatedRegistrationInfo> {
     let RegistrationRequest {
         first_name,
         last_name,
@@ -149,7 +151,7 @@ fn validate_request(req: &RegistrationRequest) -> Option<RegistrationInfo> {
     let password = base64::decode(base64_encoded_hashed_password).ok()?;
     let password = str::from_utf8(&password).ok()?;
 
-    let info = RegistrationInfo {
+    let info = ValidatedRegistrationInfo {
         first_name: first_name.to_string(),
         last_name: last_name.to_string(),
         email: email.clone(),
