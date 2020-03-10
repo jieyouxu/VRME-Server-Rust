@@ -3,7 +3,6 @@ use crate::config;
 use crate::db;
 use actix_web::middleware::Logger;
 use actix_web::{error, web, App, HttpRequest, HttpResponse, HttpServer};
-use log::debug;
 use log::info;
 use serde::{Deserialize, Serialize};
 use std::net;
@@ -36,12 +35,8 @@ pub(crate) async fn start(
         config.server.address, config.server.port
     );
 
-    let connection_url =
-        db::construct_database_connection_url(&config.database);
-    setup_db_env(&connection_url);
-
-    let _pool = db::setup_database_connection_pool(&connection_url);
-    todo!();
+    // TODO: use the connection pool
+    let _pool = db::setup_database_connection_pool(&config.database);
 
     HttpServer::new(|| {
         App::new()
@@ -68,12 +63,6 @@ fn malformed_json_error_handler(
         HttpResponse::BadRequest().json(MalformedJsonResponse::default()),
     )
     .into()
-}
-
-/// We setup database connection URL environment parameter.
-fn setup_db_env(url: &str) {
-    debug!("setting up DATABASE_URL=\"{}\"", url);
-    std::env::set_var("DATABASE_URL", url);
 }
 
 /// We convert the user-provided IP address and port into a

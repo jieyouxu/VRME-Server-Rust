@@ -9,10 +9,10 @@ use toml;
 /// Configuration for the server.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
-pub(crate) struct Config {
-    pub(crate) server: ServerConfig,
-    pub(crate) logging: LoggingConfig,
-    pub(crate) database: DatabaseConfig,
+pub struct Config {
+    pub server: ServerConfig,
+    pub logging: LoggingConfig,
+    pub database: DatabaseConfig,
 }
 
 impl Default for Config {
@@ -28,9 +28,9 @@ impl Default for Config {
 /// The address and port that the server instance should bind to and listen on.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
-pub(crate) struct ServerConfig {
-    pub(crate) address: IpAddr,
-    pub(crate) port: u16,
+pub struct ServerConfig {
+    pub address: IpAddr,
+    pub port: u16,
 }
 
 impl Default for ServerConfig {
@@ -45,8 +45,8 @@ impl Default for ServerConfig {
 /// Logging configuration.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
-pub(crate) struct LoggingConfig {
-    pub(crate) level: LogLevel,
+pub struct LoggingConfig {
+    pub level: LogLevel,
 }
 
 impl Default for LoggingConfig {
@@ -59,7 +59,7 @@ impl Default for LoggingConfig {
 
 /// Logging level.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub(crate) enum LogLevel {
+pub enum LogLevel {
     #[serde(rename = "trace")]
     Trace,
     #[serde(rename = "debug")]
@@ -77,12 +77,12 @@ pub(crate) enum LogLevel {
 /// Database configuration.
 #[derive(PartialEq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
-pub(crate) struct DatabaseConfig {
-    pub(crate) username: String,
-    pub(crate) password: String,
-    pub(crate) netloc: IpAddr,
-    pub(crate) port: u16,
-    pub(crate) database_name: String,
+pub struct DatabaseConfig {
+    pub username: String,
+    pub password: String,
+    pub netloc: IpAddr,
+    pub port: u16,
+    pub database_name: String,
 }
 
 impl fmt::Debug for DatabaseConfig {
@@ -111,7 +111,7 @@ impl Default for DatabaseConfig {
 
 /// Error cases for trying to read the configuration file.
 #[derive(Debug, PartialEq)]
-pub(crate) enum ConfigError {
+pub enum ConfigError {
     IOError,
     IllFormed,
 }
@@ -121,7 +121,7 @@ pub(crate) enum ConfigError {
 /// # Arguments
 ///
 /// * `path` - The path to the configuration file in TOML format.
-pub(crate) fn get_config(path: &str) -> Result<Config, ConfigError> {
+pub fn get_config(path: &str) -> Result<Config, ConfigError> {
     read_config_file_from_path(path).and_then(|s| parse_into_config(s.as_str()))
 }
 

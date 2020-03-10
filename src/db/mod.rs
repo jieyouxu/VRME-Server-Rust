@@ -1,52 +1,45 @@
 use crate::config::DatabaseConfig;
-use diesel::pg::PgConnection;
-use diesel::r2d2::{self, ConnectionManager};
+use bb8;
+use bb8_postgres;
 use log::debug;
+use tokio_postgres;
 
-/// A database connection pool so we don't have to establish a brand new
-/// connection on each request. Uses `diesel::r2d2` for managing pooling.
-pub(crate) type DatabaseConnectionPool =
-    r2d2::Pool<ConnectionManager<PgConnection>>;
+/// A Postgres database connection pool. Connections made to the database can be
+/// reused from the pool across multiple requests to avoid the overhead of
+/// repeatedly establishing and dropping connections to the database.
+pub type DatabaseConnectionPool =
+    bb8::Pool<bb8_postgres::PostgresConnectionManager<tokio_postgres::NoTls>>;
 
-/// Constructs a database connection URL.
-pub(crate) fn construct_database_connection_url(
-    database_config: &DatabaseConfig,
-) -> String {
-    let DatabaseConfig {
-        username,
-        password,
-        netloc,
-        port,
-        database_name,
-    } = database_config;
+const DEFAULT_CONNECTION_POOL_MAX_SIZE: u32 = 15;
 
-    let connection_url = format!(
-        "postgres://{username}:{password}@{netloc}:{port}/{database_name}",
-        username = username,
-        password = password,
-        netloc = netloc,
-        port = port,
-        database_name = database_name
-    );
-
-    debug!("PostgresSQL url = \"{}\"", connection_url);
-
-    connection_url
-}
-
-/// Establish a connection to a PostgreSQL database at the given `database_url`.
-pub(crate) fn setup_database_connection_pool(
-    database_url: &str,
+/// Setup a connection pool to Postgres so we can reuse connection instead of
+/// having to establish a new connection per request.
+pub async fn setup_database_connection_pool(
+    db_config: &DatabaseConfig,
 ) -> DatabaseConnectionPool {
     debug!(
-        "Trying to connect to PostgreSQL database at {}",
-        database_url
+        "Trying to connect to PostgreSQL database given config: {:?}",
+        db_config
     );
 
-    let manager = ConnectionManager::<PgConnection>::new(database_url);
-    let pool = r2d2::Pool::builder()
+    let mut config = tokio_postgres::Config::new();
+    config.user(&db_config.username);
+    config.password(&db_config.password);
+    config.dbname(&db_config.database_name);
+    config.host(&db_config.netloc.to_string());
+    config.port(db_config.port);
+    config.application_name("VRME-Server");
+
+    let manager = bb8_postgres::PostgresConnectionManager::new(
+        config,
+        tokio_postgres::NoTls,
+    );
+
+    let pool = bb8::Pool::builder()
+        .max_size(DEFAULT_CONNECTION_POOL_MAX_SIZE)
         .build(manager)
-        .expect("Failed to create database connection pool!");
+        .await
+        .expect("failed to construct connection pool to postgres");
 
     pool
 }
