@@ -20,6 +20,20 @@ directory into `vrme_server`:
 cd vrme_server
 ```
 
+If you want to generate and render code documentation for `vrme_server`, run
+
+```bash
+cargo doc
+```
+
+And the docs will be generated under `target/doc`.
+
+- If you wish to open the documentation in the browser directly, run instead
+
+    ```bash
+    cargo doc --open
+    ```
+
 ## Configuration
 
 Run the application in either development mode or production mode by specifying
@@ -75,3 +89,5 @@ The server will:
 Environment variables take precedence over `RUN_MODE`-specific configuration
 files, which in turn take precedence over the default shared configuration
 file.
+
+See the `src/config` module for the most accurate configuration options.
