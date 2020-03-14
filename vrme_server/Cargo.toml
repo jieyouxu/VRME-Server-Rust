@@ -10,7 +10,7 @@ path = "src/main.rs"
 
 [dependencies]
 log = "0.4.8"
-env_logger = "0.5"
+env_logger = "0.7.1"
 actix-web = "2.0.0"
 actix-rt = "1.0.0"
 serde = "1.0.104"
