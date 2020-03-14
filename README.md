@@ -13,6 +13,13 @@ written in Rust Edition `2018`, using the latest stable release.
 - We use [rustfmt](https://github.com/rust-lang/rustfmt) for formatting Rust
   source code.
 
+The actual Rust project is under `vrme_server`, so start by changing the working
+directory into `vrme_server`:
+
+```bash
+cd vrme_server
+```
+
 ## Configuration
 
 Run the application in either development mode or production mode by specifying
