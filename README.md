@@ -56,6 +56,26 @@ Source under `docs/`.
 View the live deployment at
 [VRME-Server-Rust](https://jieyouxu.github.io/VRME-Server-Rust/).
 
+## Log Level
+
+To modify the log level, provide `LOG` with one of:
+
+| Verbosity     | `LOG=`  |
+|---------------|---------|
+| Most verbose  | `TRACE` |
+|               | `DEBUG` |
+|               | `INFO`  |
+|               | `WARN`  |
+| Least verbose | `ERROR` |
+
+`LOG=INFO` is the default logging level.
+
+Example log level setting:
+
+```
+LOG=WARN RUN_MODE=production cargo run --release
+```
+
 ## Configuration
 
 Run the application in either development mode or production mode by specifying
