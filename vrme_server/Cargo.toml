@@ -1,0 +1,22 @@
+[package]
+name = "vrme_server"
+version = "0.1.0"
+authors = ["许杰友 Jieyou Xu (Joe) <jieyouxu@outlook.com>"]
+edition = "2018"
+
+[[bin]]
+name = "vrme_server"
+path = "src/main.rs"
+
+[dependencies]
+log = "0.4.8"
+env_logger = "0.5"
+actix-web = "2.0.0"
+actix-rt = "1.0.0"
+serde = "1.0.104"
+config = { version = "0.10.1", features = ["json", "yaml", "toml"] }
+thiserror = "1.0.11"
+toml = "0.5.6"
+serde_derive = "1.0.104"
+actix-files = "0.2.1"
+envy = "0.4.1"
