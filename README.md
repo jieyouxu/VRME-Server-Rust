@@ -20,6 +20,8 @@ directory into `vrme_server`:
 cd vrme_server
 ```
 
+### Code Documentation
+
 If you want to generate and render code documentation for `vrme_server`, run
 
 ```bash
@@ -33,6 +35,13 @@ And the docs will be generated under `target/doc`.
     ```bash
     cargo doc --open
     ```
+
+## API Documentation
+
+Source under `docs/`.
+
+View the live deployment at
+[VRME-Server-Rust](https://jieyouxu.github.io/VRME-Server-Rust/).
 
 ## Configuration
 
