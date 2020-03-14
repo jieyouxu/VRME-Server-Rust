@@ -56,9 +56,9 @@ Source under `docs/`.
 View the live deployment at
 [VRME-Server-Rust](https://jieyouxu.github.io/VRME-Server-Rust/).
 
-## Log Level
+## Logging Level
 
-To modify the log level, provide `LOG` with one of:
+To specify the logging level, provide `LOG` with one of:
 
 | Verbosity     | `LOG=`  |
 |---------------|---------|
