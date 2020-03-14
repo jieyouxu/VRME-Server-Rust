@@ -1,0 +1,8 @@
+### Configuration Files ###
+
+# Default config
+config/default.{json,toml,yaml}
+
+# $RUN_MODE dependent config
+config/development.{json,toml,yaml}
+config/production.{json,toml,yaml}

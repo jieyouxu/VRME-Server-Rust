@@ -1,5 +1,5 @@
 use config::{Config, ConfigError, Environment, File};
-use log::{info, warn};
+use log::{debug, error, info, warn};
 use serde::Deserialize;
 use std::env;
 use std::net::IpAddr;
@@ -12,22 +12,22 @@ pub enum SettingsError {
     /// Failed to find settings file.
     #[error("settings file not found at: `{0}`")]
     NotFound(String),
-    /// Failed to read configuration file due to IO errors.
-    #[error("failed to read config due to IO error: `{0}`")]
+    /// Failed to read settings file due to IO errors.
+    #[error("failed to read settings due to IO error: `{0}`")]
     IOError(#[from] std::io::Error),
     /// Failed to parse settings file. Contains illegal syntax.
     #[error("invalid syntax: `{0}`")]
     InvalidSyntax(String),
     /// Other settings errors.
     #[error("settings error: `{0}`")]
-    ConfigError(Box<dyn std::error::Error>),
+    Other(Box<dyn std::error::Error>),
 }
 
 impl std::convert::From<ConfigError> for SettingsError {
     fn from(error: ConfigError) -> Self {
         match error {
             ConfigError::NotFound(s) => Self::NotFound(s),
-            e => Self::ConfigError(Box::new(e)),
+            e => Self::Other(Box::new(e)),
         }
     }
 }
@@ -66,6 +66,7 @@ pub struct LoggingSettings {
 /// `LoggingLevel::Debug` is permitted to log sensitive information such as
 /// passwords and IPs to `stdout` or `stderr`.
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "UPPERCASE")]
 pub enum LoggingLevel {
     Trace,
     Debug,
@@ -78,9 +79,9 @@ pub enum LoggingLevel {
 #[derive(Debug, Deserialize)]
 pub struct ServerSettings {
     /// Which IP address the application server should bind to.
-    hostname: IpAddr,
+    pub hostname: IpAddr,
     /// Which port the application server should listen on.
-    port: u16,
+    pub port: u16,
 }
 
 impl Settings {
@@ -105,7 +106,7 @@ impl Settings {
         // regardless of `RUN_MODE`.
         cfg.merge(File::with_name("config/default"))?;
         info!("Read config from `config/default`");
-        info!("Provided config from `config/default`:\n {:?}", &cfg);
+        debug!("Provided config from `config/default`:\n {:#?}", &cfg);
 
         // Then, we add `RUN_MODE`-determined configuration. Defaults to
         // `development` mode, which takes configuration file at
@@ -117,8 +118,8 @@ impl Settings {
                         File::with_name("config/default").required(false),
                     )?;
                     info!("Reading config from `config/development`");
-                    info!(
-                        "Provided config from `config/development`:\n {:?}",
+                    debug!(
+                        "Provided config from `config/development`:\n {:#?}",
                         &cfg
                     );
                 }
@@ -127,8 +128,8 @@ impl Settings {
                         File::with_name("config/production").required(false),
                     )?;
                     info!("Reading config from `config/production`");
-                    info!(
-                        "Provided config from `config/production`:\n {:?}",
+                    debug!(
+                        "Provided config from `config/production`:\n {:#?}",
                         &cfg
                     );
                 }
@@ -151,9 +152,18 @@ impl Settings {
         cfg.merge(Environment::with_prefix("APP"))?;
 
         info!("Mixed in configuration from environment variables");
-        info!("Final effective configuration provided:\n {:?}", &cfg);
 
-        cfg.try_into()
-            .map_err(|e| SettingsError::ConfigError(Box::new(e)))
+        match cfg.try_into() {
+            Ok(wellformed_settings) => {
+                info!("Settings are validated");
+                debug!("Final settings:\n {:#?}", &wellformed_settings);
+                Ok(wellformed_settings)
+            }
+            Err(e) => {
+                error!("Settings could not be parsed!");
+                error!("Error cause:\n {:#?}", &e);
+                Err(SettingsError::InvalidSyntax(e.to_string()))
+            }
+        }
     }
 }
