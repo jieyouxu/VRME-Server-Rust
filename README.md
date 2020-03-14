@@ -1,5 +1,18 @@
 # Virtual Reality Meeting Environment Backend Server
 
+## Development
+
+The project is written in [Rust](https://github.com/rust-lang/rust). It is
+written in Rust Edition `2018`, using the latest stable release.
+
+- We use [Cargo](https://github.com/rust-lang/cargo/) for the package manager.
+- We use [rustup](https://github.com/rust-lang/rustup/) for managing the tool
+  chain.
+- We use [mdBook](https://github.com/rust-lang/mdBook) for API endpoint
+  documentation.
+- We use [rustfmt](https://github.com/rust-lang/rustfmt) for formatting Rust
+  source code.
+
 ## Configuration
 
 Run the application in either development mode or production mode by specifying
@@ -11,10 +24,14 @@ Run the application in either development mode or production mode by specifying
     RUN_MODE=production cargo run --release
     ```
 
+    *The `--release` flag passed to `cargo` enables `-O3` optimization by
+    default which is suitable for production mode, but erases useful debugging
+    information for development.*
+
 - **Development** mode:
 
     ```bash
-    RUN_MODE=development cargo run --release
+    RUN_MODE=development cargo run
     ```
 
 The server will:
