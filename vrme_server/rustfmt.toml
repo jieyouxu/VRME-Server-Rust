@@ -1,0 +1,5 @@
+# Max width
+max_width = 80
+
+# Use tabs
+hard_tabs = true
