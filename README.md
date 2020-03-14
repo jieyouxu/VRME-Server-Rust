@@ -36,10 +36,18 @@ cargo doc
 And the docs will be generated under `target/doc`.
 
 - If you wish to open the documentation in the browser directly, run instead
+  (the browser executable pointed to by `$BROWSER`):
 
-    ```bash
-    cargo doc --open
-    ```
+   ```bash
+   cargo doc --open
+   ```
+
+- If you don't want to generate docs for dependency crates, specify the
+  `--no-deps` flag to `cargo doc`
+
+   ```bash
+   cargo doc --no-deps --open
+   ```
 
 ## API Documentation
 
