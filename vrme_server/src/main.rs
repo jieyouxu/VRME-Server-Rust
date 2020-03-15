@@ -1,3 +1,5 @@
+/// Database connection pool initialization.
+pub mod database;
 /// Logging support.
 pub mod logging;
 /// Supports tiered settings, from settings files and environment variables.
@@ -33,8 +35,8 @@ async fn main() -> std::io::Result<()> {
 	print_welcome_info()?;
 	info!("VRME_Server version {}", VERSION);
 
-	let settings = settings::Settings::new().unwrap_or_else(|e| {
-		error!("Failed to load settings:\n {:#?}", &e);
+	let settings = settings::Settings::new().unwrap_or_else(|ref e| {
+		error!("Failed to load settings:\n {:#?}", e);
 		std::process::exit(1);
 	});
 
@@ -43,8 +45,17 @@ async fn main() -> std::io::Result<()> {
 
 	info!("Server listening on http://{}", &socket_addr);
 
+	let connection_pool = database::init_database_pool(&settings.database)
+		.unwrap_or_else(|ref e| {
+			error!("Failed to initialize Postgre connection pool");
+			error!("Error cause: {}", e);
+			std::process::exit(1);
+		});
+
 	HttpServer::new(move || {
-		App::new().app_data(web::Data::new(settings.clone()))
+		App::new()
+			.app_data(web::Data::new(settings.clone()))
+			.data(connection_pool.clone())
 	})
 	.bind(socket_addr)?
 	.run()
