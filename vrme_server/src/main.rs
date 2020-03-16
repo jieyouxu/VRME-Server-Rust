@@ -1,9 +1,7 @@
-/// Database connection pool initialization.
 pub mod database;
-/// Logging support.
 pub mod logging;
-/// Supports tiered settings, from settings files and environment variables.
 pub mod settings;
+pub mod accounts;
 
 use actix_web::{web, App, HttpServer};
 use log::{error, info};
