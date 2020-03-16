@@ -1,3 +1,5 @@
+//! Logging setup and configuration.
+
 use env_logger;
 use log::info;
 

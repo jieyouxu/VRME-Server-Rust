@@ -1,3 +1,5 @@
+//! Database and connection pool setup and configuration.
+
 use crate::settings::DatabaseSettings;
 use deadpool_postgres::config::{Config, ConfigError};
 use log::{debug, info};

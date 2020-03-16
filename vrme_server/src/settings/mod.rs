@@ -1,3 +1,14 @@
+//! Settings for the application server.
+//!
+//! Supports parsing tiered settings format and overriding from environment variables prefixed
+//! with `APP_` for settings keys of the same name.
+//!
+//! Currently support format:
+//!
+//! - TOML
+//! - YAML
+//! - JSON
+
 use config::{Config, ConfigError, Environment, File};
 use log::{debug, error, info, warn};
 use serde::Deserialize;
