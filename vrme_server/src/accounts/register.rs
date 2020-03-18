@@ -8,6 +8,7 @@
 //!
 //! - [SHA-256](https://tools.ietf.org/html/rfc4634)
 
+use crate::database::Pool;
 use crate::service_errors::ServiceError;
 use actix_web::{web, HttpResponse, ResponseError};
 use base64;
@@ -16,7 +17,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 /// Required payload when a user wishes to register to create a new account.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RegistrationRequest {
 	email: String,
 	first_name: String,
@@ -61,7 +62,8 @@ pub struct RegistrationRequest {
 ///
 /// Refer to the API endpoint documentation for possible error responses.
 pub async fn handle_registration(
-	payload: web::Data<RegistrationRequest>,
+	payload: web::Json<RegistrationRequest>,
+	_pool: web::Data<Pool>,
 ) -> HttpResponse {
 	{
 		let payload = payload.clone();

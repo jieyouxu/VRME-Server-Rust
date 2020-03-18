@@ -8,6 +8,7 @@ pub(crate) mod welcome;
 use actix_web::error::{Error, JsonPayloadError};
 use actix_web::{middleware, web, App, HttpRequest, HttpServer};
 use log::{error, info};
+use serde_json;
 use service_errors::ServiceError;
 use std::net;
 
@@ -64,7 +65,7 @@ async fn main() -> std::io::Result<()> {
 					.limit(MAX_JSON_SIZE)
 					.error_handler(handle_json_error),
 			)
-			.app_data(web::Data::new(settings.clone()))
+			.data(settings.clone())
 			.data(connection_pool.clone())
 			.service(
 				web::resource("/register").route(
@@ -84,6 +85,26 @@ fn handle_json_error(err: JsonPayloadError, _req: &HttpRequest) -> Error {
 		}
 		JsonPayloadError::ContentType => {
 			"Invalid `Content-Type` header: use `application/json`".to_string()
+		}
+		JsonPayloadError::Deserialize(ref e) => {
+			use serde_json::error::Category;
+			// Unfortunately `serde_json`'s Errors are opaque and do not contain useful information
+			// such as missing fields.
+			match e.classify() {
+				Category::Syntax => format!(
+					"Invalid JSON at [line = {}, col = {}]",
+					e.line(),
+					e.column()
+				),
+				Category::Data => {
+					"Missing required field(s) and/or values have invalid types"
+						.to_string()
+				}
+				Category::Eof => {
+					"Expected EOF when trying to parse JSON".to_string()
+				}
+				Category::Io => "IO error when parsing JSON".to_string(),
+			}
 		}
 		_ => "Invalid JSON payload".to_string(),
 	};
