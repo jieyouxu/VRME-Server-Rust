@@ -94,15 +94,15 @@ fn print_welcome_info() -> std::io::Result<()> {
 	Ok(())
 }
 
-fn handle_json_error(err: JsonPayloadError, req: &HttpRequest) -> Error {
+fn handle_json_error(err: JsonPayloadError, _req: &HttpRequest) -> Error {
 	let err_msg = match err {
 		JsonPayloadError::Overflow => {
-			&format!("Payload size exceeds the max limit: {} kB", MAX_JSON_SIZE)
+			format!("Payload size exceeds the max limit: {} kB", MAX_JSON_SIZE)
 		}
 		JsonPayloadError::ContentType => {
-			"Invalid `Content-Type` header: use `application/json`"
+			"Invalid `Content-Type` header: use `application/json`".to_string()
 		}
-		_ => "Invalid JSON payload",
+		_ => "Invalid JSON payload".to_string(),
 	};
 
 	ServiceError::BadRequest(format!(
