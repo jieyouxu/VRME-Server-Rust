@@ -120,7 +120,7 @@ fn validate_email(email: &str) -> Result<(), ServiceError> {
 		));
 	}
 
-	if !email.contains("@") {
+	if !email.contains('@') {
 		return Err(ServiceError::BadRequest(
 			"Invalid email address".to_string(),
 		));
