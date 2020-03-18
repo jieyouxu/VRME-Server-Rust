@@ -1,9 +1,10 @@
+pub mod accounts;
 pub mod database;
 pub mod logging;
+pub mod service_errors;
 pub mod settings;
-pub mod accounts;
 
-use actix_web::{web, App, HttpServer};
+use actix_web::{middleware, web, App, HttpServer};
 use log::{error, info};
 use std::io::Write;
 use std::net;
@@ -14,7 +15,6 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// Main entry point to the Virtual Reality Meeting Environment backend server.
 ///
 /// # Panics
-///
 /// If configuration provided is invalid, the server instance will panic with
 /// error messages to indicate erroneous configuration.
 ///
@@ -25,7 +25,7 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 ///
 /// # Additional References
 ///
-/// Build with [actix/actix-web](https://github.com/actix/actix-web).
+/// Built with [actix/actix-web](https://github.com/actix/actix-web).
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
 	logging::init();
@@ -45,15 +45,22 @@ async fn main() -> std::io::Result<()> {
 
 	let connection_pool = database::init_database_pool(&settings.database)
 		.unwrap_or_else(|ref e| {
-			error!("Failed to initialize Postgre connection pool");
+			error!("Failed to initialize PostgreSQL connection pool");
 			error!("Error cause: {}", e);
 			std::process::exit(1);
 		});
 
 	HttpServer::new(move || {
 		App::new()
+			.wrap(middleware::Logger::default())
+			.data(web::JsonConfig::default().limit(4096))
 			.app_data(web::Data::new(settings.clone()))
 			.data(connection_pool.clone())
+			.service(
+				web::resource("/register").route(
+					web::post().to(accounts::register::handle_registration),
+				),
+			)
 	})
 	.bind(socket_addr)?
 	.run()
