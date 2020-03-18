@@ -160,7 +160,7 @@ impl Settings {
 		// `APP_DATABASE_USERNAME` will override the value read from the various
 		// configuration files because environment variables have higher
 		// precedence.
-		cfg.merge(Environment::with_prefix("APP"))?;
+		cfg.merge(Environment::with_prefix("APP").separator("__"))?;
 
 		info!("Mixed in configuration from environment variables");
 

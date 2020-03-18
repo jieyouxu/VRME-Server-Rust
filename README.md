@@ -117,13 +117,14 @@ The server will:
 
 3. Read from environment variables that have the same key name as the ones in
    the configuration file. The environment variables need to be *prefixed* by
-   `APP_`.
+   `APP_`. When the configuration is nested, such as `server.hostname`, use the
+   separator `__` to replace the dot as the name of the environment variable.
 
-   *Example: `server.hostname` is overriden by `APP_SERVER_HOSTNAME`*.
+   *Example: `server.hostname` is overriden by `APP_SERVER__HOSTNAME`*.
 
    ```bash
    # Override `server.hostname`
-   APP_SERVER_HOSTNAME=127.0.0.1 \
+   APP_SERVER__HOSTNAME=127.0.0.1 \
        RUN_MODE=development \
        cargo run
    ```
