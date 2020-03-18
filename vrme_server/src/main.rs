@@ -3,12 +3,12 @@ pub mod database;
 pub mod logging;
 pub mod service_errors;
 pub mod settings;
+pub(crate) mod welcome;
 
 use actix_web::error::{Error, JsonPayloadError};
 use actix_web::{middleware, web, App, HttpRequest, HttpServer};
 use log::{error, info};
 use service_errors::ServiceError;
-use std::io::Write;
 use std::net;
 
 /// Package version.
@@ -35,7 +35,8 @@ const MAX_JSON_SIZE: usize = 32;
 async fn main() -> std::io::Result<()> {
 	logging::init();
 
-	print_welcome_info()?;
+	welcome::welcome()?;
+
 	info!("VRME_Server version {}", VERSION);
 
 	let settings = settings::Settings::new().unwrap_or_else(|ref e| {
@@ -74,24 +75,6 @@ async fn main() -> std::io::Result<()> {
 	.bind(socket_addr)?
 	.run()
 	.await
-}
-
-const NAME: &[u8] = br#"
- __      __ _____   __  __  ______    _____  ______  _____ __      __ ______  _____
- \ \    / /|  __ \ |  \/  ||  ____|  / ____||  ____||  __ \\ \    / /|  ____||  __ \
-  \ \  / / | |__) || \  / || |__    | (___  | |__   | |__) |\ \  / / | |__   | |__) |
-   \ \/ /  |  _  / | |\/| ||  __|    \___ \ |  __|  |  _  /  \ \/ /  |  __|  |  _  /
-    \  /   | | \ \ | |  | || |____   ____) || |____ | | \ \   \  /   | |____ | | \ \
-     \/    |_|  \_\|_|  |_||______| |_____/ |______||_|  \_\   \/    |______||_|  \_\
-                                ______
-                               |______|
-"#;
-
-fn print_welcome_info() -> std::io::Result<()> {
-	let stdout = std::io::stdout();
-	let mut handle = stdout.lock();
-	handle.write_all(NAME)?;
-	Ok(())
 }
 
 fn handle_json_error(err: JsonPayloadError, _req: &HttpRequest) -> Error {
