@@ -4,13 +4,18 @@ pub mod logging;
 pub mod service_errors;
 pub mod settings;
 
-use actix_web::{middleware, web, App, HttpServer};
+use actix_web::error::{Error, JsonPayloadError};
+use actix_web::{middleware, web, App, HttpRequest, HttpServer};
 use log::{error, info};
+use service_errors::ServiceError;
 use std::io::Write;
 use std::net;
 
 /// Package version.
 const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+/// Max JSON size in kB
+const MAX_JSON_SIZE: usize = 32;
 
 /// Main entry point to the Virtual Reality Meeting Environment backend server.
 ///
@@ -53,7 +58,11 @@ async fn main() -> std::io::Result<()> {
 	HttpServer::new(move || {
 		App::new()
 			.wrap(middleware::Logger::default())
-			.data(web::JsonConfig::default().limit(4096))
+			.app_data(
+				web::JsonConfig::default()
+					.limit(MAX_JSON_SIZE)
+					.error_handler(handle_json_error),
+			)
 			.app_data(web::Data::new(settings.clone()))
 			.data(connection_pool.clone())
 			.service(
@@ -83,4 +92,22 @@ fn print_welcome_info() -> std::io::Result<()> {
 	let mut handle = stdout.lock();
 	handle.write_all(NAME)?;
 	Ok(())
+}
+
+fn handle_json_error(err: JsonPayloadError, req: &HttpRequest) -> Error {
+	let err_msg = match err {
+		JsonPayloadError::Overflow => {
+			&format!("Payload size exceeds the max limit: {} kB", MAX_JSON_SIZE)
+		}
+		JsonPayloadError::ContentType => {
+			"Invalid `Content-Type` header: use `application/json`"
+		}
+		_ => "Invalid JSON payload",
+	};
+
+	ServiceError::BadRequest(format!(
+		"Failed to parse payload as JSON: {}",
+		err_msg
+	))
+	.into()
 }
