@@ -13,8 +13,8 @@ pub type Date = chrono::NaiveDate;
 /// - `password_hash` requirements:
 /// 	* Must be hashed client-side with a **strong** hash function such as
 /// 	  `SHA-256`.
-/// 	* Must be hashed to exactly \\( 32 \\) bytes long.
-/// 	* Must be Base64-encoded to \\( 43 \\) Base64 characters long.
+/// 	* Must be hashed to exactly **32** bytes long (take the first 32 bytes).
+/// 	* Must be Base64-encoded to **43** base64 characters long.
 #[derive(Debug, PostgresMapper)]
 #[pg_mapper(table = "accounts")]
 pub struct Account {
