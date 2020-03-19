@@ -86,7 +86,10 @@ async fn main() -> std::io::Result<()> {
 ///
 /// # Example Error Response
 ///
-/// ```json
+/// ```http
+/// HTTP/1.1 400 Bad Request
+/// Content-Type: application/json
+///
 /// {
 ///     "cause": "bad-request",
 ///     "message": "Invalid JSON at [line = 1, col = 1]"
