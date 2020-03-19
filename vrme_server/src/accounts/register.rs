@@ -13,18 +13,53 @@ use crate::service_errors::ServiceError;
 use actix_web::{web, HttpResponse, ResponseError};
 use base64;
 use log::debug;
+use rand;
+use ring::pbkdf2;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use std::num::NonZeroU32;
+
+/// Length of the extracted hashed password in bytes. This is for the raw hashed password bytes that
+/// is not Base64-encoded.
+pub const HASHED_PASSWORD_LEN: usize = 32;
+
+/// Must be hashed client-side with a strong hash function such as SHA-256. The hash must be
+/// truncated to 32 bytes, then encoded in Base64, which gives exactly `43` base64 characters.
+pub const BASE64_ENCODED_HASHED_PASSWORD_LEN: usize = 43;
+
+/// Length of the randomly generated salt in bytes.
+pub const SALT_LEN: usize = 16;
+
+/// We use the `PBKDF2` algorithm to compute the password hash in a secure fashion, with the core
+/// hash function being `HMAC-SHA-256`.
+///
+/// # References
+///
+/// - [`ring::pbkdf2`](https://briansmith.org/rustdoc/ring/pbkdf2/index.html).
+static PBKDF2_ALGORITHM: pbkdf2::Algorithm = pbkdf2::PBKDF2_HMAC_SHA256;
+
+/// Number of `PBKDF2` iterations to perform. The more iterations, the more difficult to try to
+/// compute a rainbow table to try to reverse the hash. However, more iterations also take more CPU
+/// cycles to compute.
+///
+/// We default to use `100_000` iterations which gives a reasonably large number of iterations to
+/// hinder a possible attacker.
+///
+/// As computing power increases, the number of iterations should also be increased to ensure the
+/// difficulity (in computing time) for an potential adversay to try to compute a rainbow table for
+/// the `PBKDF2` + `HMAC-SHA-256` combination.
+pub const PBKDF2_ITERATIONS: NonZeroU32 = unsafe {
+	// SAFETY: `100_000` is guaranteed to fit within a `u32` AND is not zero.
+	NonZeroU32::new_unchecked(100_000)
+};
 
 /// Required payload when a user wishes to register to create a new account.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RegistrationRequest {
-	email: String,
-	first_name: String,
-	last_name: String,
-	/// Must be hashed client-side with a strong hash function such as SHA-256. The hash must be
-	/// truncated to 32 bytes, then encoded in Base64, which gives exactly `43` base64 characters.
-	hashed_password: String,
+	pub email: String,
+	pub first_name: String,
+	pub last_name: String,
+	pub hashed_password: String,
 }
 
 /// POST endpoint handler for user registration.
@@ -65,32 +100,52 @@ pub async fn handle_registration(
 	payload: web::Json<RegistrationRequest>,
 	_pool: web::Data<Pool>,
 ) -> HttpResponse {
-	{
-		let payload = payload.clone();
-		if let Err(e) =
-			web::block(move || validate_request_payload(&payload)).await
-		{
-			debug!("{}", e);
-			return ServiceError::InternalServerError(
-				"Threading error".to_string(),
-			)
-			.error_response();
-		}
+	if let Err(e) = validate_request_payload(payload.clone()).await {
+		debug!("{}", &e);
+		return ServiceError::InternalServerError(
+			"Threading error".to_string(),
+		)
+		.error_response();
 	}
+
+	// We first need to base64-decode the client password hash.
+	let mut client_password_hash = [0u8; HASHED_PASSWORD_LEN];
+	if let Err(e) =
+		base64_decode(&mut client_password_hash, &payload.hashed_password).await
+	{
+		return e.error_response();
+	}
+
+	// We then need to compute the `PasswordHashInfo` to store them into the database.
+	let password_hash_info = match run_pbkdf2(&mut client_password_hash).await {
+		Ok(info) => info,
+		Err(e) => {
+			debug!("{}", &e);
+			return e.error_response();
+		}
+	};
 
 	// TODO: actual registration logic
 	make_success_response(&payload.email)
 }
 
-fn validate_request_payload(
-	payload: &RegistrationRequest,
+async fn validate_request_payload(
+	payload: RegistrationRequest,
 ) -> Result<(), ServiceError> {
-	validate_name_length(&payload.first_name, "first_name")?;
-	validate_name_length(&payload.last_name, "last_name")?;
-	validate_email(&payload.email)?;
-	validate_hashed_password(&payload.hashed_password)?;
-
-	Ok(())
+	web::block(move || {
+		validate_name_length(&payload.first_name, "first_name")?;
+		validate_name_length(&payload.last_name, "last_name")?;
+		validate_email(&payload.email)?;
+		validate_hashed_password(&payload.hashed_password)?;
+		Ok::<(), ServiceError>(())
+	})
+	.await
+	.map_err(|e| {
+		debug!("{}", e);
+		ServiceError::InternalServerError(
+			"Threading error when validating request".to_string(),
+		)
+	})
 }
 
 fn validate_name_length(
@@ -137,21 +192,117 @@ fn validate_hashed_password(hashed_password: &str) -> Result<(), ServiceError> {
 	//
 	// Each Base64 character can encode 6 bits (`64 == 2^6`), which means that 32 bytes require
 	// `Ceil(4/3 * 32) = 43` Base64 characters to encode.
-	if hashed_password.len() != 43 {
+	if hashed_password.len() != BASE64_ENCODED_HASHED_PASSWORD_LEN {
 		return Err(ServiceError::BadRequest(
-            "Invalid `hashed_password`: incorrect length {} when 43 is required after 32 bytes of \
-            password hash is Base64-encoded".to_string()
-        ));
+			format!(
+                "Invalid `hashed_password`: incorrect length {} when {} is required after {} \
+                bytes of password hash is Base64-encoded",
+				hashed_password.len(),
+				BASE64_ENCODED_HASHED_PASSWORD_LEN,
+				HASHED_PASSWORD_LEN,
+			),
+		));
 	}
 
 	if let Err(e) = base64::decode(hashed_password) {
 		debug!("Invalid `hashed_password`: {}", e.to_string());
 		return Err(ServiceError::BadRequest(
-            "Invalid `hashed_password`: the provided hash is not a valid Base64-encoded string".to_string()
-                ));
+                "Invalid `hashed_password`: the provided hash is not a valid Base64-encoded \
+                string".to_string()
+            )
+        );
 	}
 
 	Ok(())
+}
+
+async fn base64_decode(
+	hashed_password_buffer: &mut [u8; HASHED_PASSWORD_LEN],
+	encoded_hashed_password: &str,
+) -> Result<(), ServiceError> {
+	let bytes = match base64::decode(encoded_hashed_password) {
+		Ok(b) => b,
+		Err(e) => {
+			return Err(ServiceError::BadRequest(
+				"Invalid Base64 encoding of hashed password".to_string(),
+			));
+		}
+	};
+
+	if bytes.len() != HASHED_PASSWORD_LEN {
+		return Err(ServiceError::BadRequest(
+			"Base64-encoded hashed password has invalid length".to_string(),
+		));
+	}
+
+	Ok(hashed_password_buffer.copy_from_slice(&bytes))
+}
+
+/// `PasswordHashInfo` is derived from the client-side provided `hashed_password`.
+pub struct PasswordHashInfo {
+	/// Number of iterations of `PBKDF2`.
+	pub iteration_count: NonZeroU32,
+	/// 16-byte `salt` generated from a secure random number generator.
+	pub salt: Vec<u8>,
+	/// 32-bytes of the output of `PBKDF2`.
+	pub password_hash_final: Vec<u8>,
+}
+
+/// Generate `PasswordHashInfo` for secure storage in persistent storage.
+///
+/// # Password Hash Generation Process
+///
+/// - We use a **secure random number generator** to generate a \\( 16 \\) byte
+///   `salt`.
+/// - We feed the `salt` and `password_hashed_1` into **PBKDF2**.
+/// - We initialize **PBKDF2** with **HMAC-SHA-256** as the core hash function.
+/// - We perform `100,000` iterations (`iteration_count = 100_000`).
+/// - We take `32` bytes (`256` bits) of the output of **PBKDF2** as the final
+///   `password_hash_final`.
+pub async fn run_pbkdf2(
+	client_hash: &mut [u8; HASHED_PASSWORD_LEN],
+) -> Result<PasswordHashInfo, ServiceError> {
+	use rand::RngCore;
+
+	let client_hash = client_hash.clone();
+
+	// Because hash computations are costly, we delegate such expensive computation in a new thread
+	// as to not block the response handler thread. Exactly how this is scheduled is up to `tokio`
+	// and its runtime async scheduling.
+	web::block(move || {
+		let mut salt = [0u8; SALT_LEN];
+
+		if let Err(e) = rand::thread_rng().try_fill_bytes(&mut salt) {
+			debug!("{}", &e);
+			return Err::<PasswordHashInfo, ServiceError>(
+				ServiceError::InternalServerError(
+					"Failed to generate password salt".to_string(),
+				),
+			);
+		};
+
+		let mut password_hash = [0u8; HASHED_PASSWORD_LEN];
+
+		pbkdf2::derive(
+			PBKDF2_ALGORITHM,
+			PBKDF2_ITERATIONS,
+			&salt,
+			&client_hash,
+			&mut password_hash,
+		);
+
+		return Ok::<PasswordHashInfo, ServiceError>(PasswordHashInfo {
+			iteration_count: PBKDF2_ITERATIONS,
+			salt: salt.to_vec(),
+			password_hash_final: password_hash.to_vec(),
+		});
+	})
+	.await
+	.map_err(|_| {
+		ServiceError::InternalServerError(
+			"Failed to run PBKDF2 in a new thread".to_string(),
+		)
+	})
 }
 
 fn make_success_response(email: &str) -> HttpResponse {
