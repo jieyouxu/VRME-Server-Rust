@@ -52,7 +52,7 @@ Remarks:
 	* Must be hashed client-side with a **strong** hash function such as
 	  `SHA-256`.
 	* Must be hashed to exactly \\( 32 \\) bytes long.
-	* Must be Base64-encoded to \\( 43 \\) Base64 characters long.
+	* Must be Base64-encoded to \\( 44 \\) Base64 characters long.
 
 ### Responses
 

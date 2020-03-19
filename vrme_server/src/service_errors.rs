@@ -5,7 +5,6 @@ use deadpool_postgres;
 use serde::Serialize;
 use serde_json::json;
 use thiserror::Error;
-use tokio_pg_mapper;
 use tokio_postgres;
 
 #[derive(Debug, Error, Serialize)]
@@ -20,6 +19,9 @@ pub enum ServiceError {
 
 	#[error("Forbidden")]
 	Forbidden,
+
+	#[error("Conflict")]
+	Conflict(String),
 }
 
 impl ResponseError for ServiceError {
@@ -48,6 +50,12 @@ impl ResponseError for ServiceError {
 					"message": "attempting to access protected endpoint with invalid credentials"
 				}))
 			}
+			ServiceError::Conflict(ref s) => {
+				HttpResponse::Conflict().json(json!({
+					"cause": "conflict",
+					"message": s
+				}))
+			}
 		}
 	}
 }
@@ -63,23 +71,6 @@ impl From<deadpool_postgres::PoolError> for ServiceError {
 			),
 			PoolError::Backend(ref e) => Self::InternalServerError(format!(
 				"Database error: {}",
-				e.to_string()
-			)),
-		}
-	}
-}
-
-impl From<tokio_pg_mapper::Error> for ServiceError {
-	/// Converts from `tokio_pg_mapper::tokio_pg_mapper` into `ServiceError::InternalServerError`.
-	fn from(error: tokio_pg_mapper::Error) -> Self {
-		use tokio_pg_mapper::Error;
-
-		match &error {
-			Error::ColumnNotFound => Self::InternalServerError(
-				"Database column not found".to_string(),
-			),
-			Error::Conversion(e) => Self::InternalServerError(format!(
-				"Database conversion mapper failed: {}",
 				e.to_string()
 			)),
 		}

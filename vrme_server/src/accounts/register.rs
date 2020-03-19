@@ -12,6 +12,7 @@ use crate::database::Pool;
 use crate::service_errors::ServiceError;
 use actix_web::{web, HttpResponse, ResponseError};
 use base64;
+use deadpool_postgres::Client;
 use log::debug;
 use rand;
 use ring::pbkdf2;
@@ -24,8 +25,9 @@ use std::num::NonZeroU32;
 pub const HASHED_PASSWORD_LEN: usize = 32;
 
 /// Must be hashed client-side with a strong hash function such as SHA-256. The hash must be
-/// truncated to 32 bytes, then encoded in Base64, which gives exactly `43` base64 characters.
-pub const BASE64_ENCODED_HASHED_PASSWORD_LEN: usize = 43;
+/// truncated to 32 bytes, then encoded in Base64, which gives exactly **44** base64 characters
+/// (43 to encode the 32 bytes and one more additional byte so it rounds up to a multipe of 4).
+pub const BASE64_ENCODED_HASHED_PASSWORD_LEN: usize = 44;
 
 /// Length of the randomly generated salt in bytes.
 pub const SALT_LEN: usize = 16;
@@ -97,10 +99,12 @@ pub struct RegistrationRequest {
 ///
 /// Refer to the API endpoint documentation for possible error responses.
 pub async fn handle_registration(
-	payload: web::Json<RegistrationRequest>,
-	_pool: web::Data<Pool>,
+	request_info: web::Json<RegistrationRequest>,
+	pool: web::Data<Pool>,
 ) -> HttpResponse {
-	if let Err(e) = validate_request_payload(payload.clone()).await {
+	debug!("Request:\n {:?}", &request_info);
+
+	if let Err(e) = validate_request_payload(request_info.clone()).await {
 		debug!("{}", &e);
 		return ServiceError::InternalServerError(
 			"Threading error".to_string(),
@@ -111,14 +115,14 @@ pub async fn handle_registration(
 	// We first need to base64-decode the client password hash.
 	let mut client_password_hash = [0u8; HASHED_PASSWORD_LEN];
 	if let Err(e) =
-		base64_decode(&mut client_password_hash, &payload.hashed_password).await
+		base64_decode(&mut client_password_hash, &request_info.hashed_password)
+			.await
 	{
 		return e.error_response();
 	}
 
 	// We then need to compute the `PasswordHashInfo` to store them into the database.
-	let _password_hash_info = match run_pbkdf2(&mut client_password_hash).await
-	{
+	let password_hash_info = match run_pbkdf2(&mut client_password_hash).await {
 		Ok(info) => info,
 		Err(e) => {
 			debug!("{}", &e);
@@ -126,9 +130,30 @@ pub async fn handle_registration(
 		}
 	};
 
-	// TODO: actual registration logic
+	let client = match pool.get().await {
+		Ok(client) => client,
+		Err(e) => {
+			debug!("{}", &e);
+			return ServiceError::InternalServerError(e.to_string())
+				.error_response();
+		}
+	};
 
-	make_success_response(&payload.email)
+	let (user_id, email) = match create_account_if_not_exists(
+		&client,
+		&request_info,
+		&password_hash_info,
+	)
+	.await
+	{
+		Ok((user_id, email)) => (user_id, email),
+		Err(e) => {
+			debug!("{}", &e);
+			return e.error_response();
+		}
+	};
+
+	make_success_response(user_id, &email)
 }
 
 async fn validate_request_payload(
@@ -143,10 +168,11 @@ async fn validate_request_payload(
 	})
 	.await
 	.map_err(|e| {
-		debug!("{}", e);
-		ServiceError::InternalServerError(
-			"Threading error when validating request".to_string(),
-		)
+		if let actix_web::error::BlockingError::Error(err) = e {
+			err
+		} else {
+			ServiceError::InternalServerError(e.to_string())
+		}
 	})
 }
 
@@ -190,15 +216,15 @@ fn validate_email(email: &str) -> Result<(), ServiceError> {
 
 fn validate_hashed_password(hashed_password: &str) -> Result<(), ServiceError> {
 	// `hahsed_password` *must* be the first 32-bytes of the hash of the raw password. The 32 bytes
-	// must then be Base64-encoded into 43 Base64 characters.
+	// must then be Base64-encoded into 44 Base64 characters.
 	//
-	// Each Base64 character can encode 6 bits (`64 == 2^6`), which means that 32 bytes require
-	// `Ceil(4/3 * 32) = 43` Base64 characters to encode.
+	// Each base64 character can encode 6 bits (`64 == 2^6`), which means that 32 bytes require
+	// `Ceil(4/3 * 32) = 43` => nearest multiple of 4 is `44` Base64 characters to encode.
 	if hashed_password.len() != BASE64_ENCODED_HASHED_PASSWORD_LEN {
 		return Err(ServiceError::BadRequest(
 			format!(
                 "Invalid `hashed_password`: incorrect length {} when {} is required after {} \
-                bytes of password hash is Base64-encoded",
+                bytes of password hash is base64-encoded",
 				hashed_password.len(),
 				BASE64_ENCODED_HASHED_PASSWORD_LEN,
 				HASHED_PASSWORD_LEN,
@@ -209,7 +235,7 @@ fn validate_hashed_password(hashed_password: &str) -> Result<(), ServiceError> {
 	if let Err(e) = base64::decode(hashed_password) {
 		debug!("Invalid `hashed_password`: {}", e.to_string());
 		return Err(ServiceError::BadRequest(
-                "Invalid `hashed_password`: the provided hash is not a valid Base64-encoded \
+                "Invalid `hashed_password`: the provided hash is not a valid base64-encoded \
                 string".to_string()
             )
         );
@@ -226,14 +252,14 @@ async fn base64_decode(
 		Ok(b) => b,
 		Err(_) => {
 			return Err(ServiceError::BadRequest(
-				"Invalid Base64 encoding of hashed password".to_string(),
+				"Invalid base64 encoding of hashed password".to_string(),
 			));
 		}
 	};
 
 	if bytes.len() != HASHED_PASSWORD_LEN {
 		return Err(ServiceError::BadRequest(
-			"Base64-encoded hashed password has invalid length".to_string(),
+			"base64-encoded hashed password has invalid length".to_string(),
 		));
 	}
 
@@ -307,9 +333,77 @@ pub async fn run_pbkdf2(
 	})
 }
 
-fn make_success_response(email: &str) -> HttpResponse {
+const CREATE_USER_QUERY: &str = r#"
+    INSERT INTO accounts
+    (
+        email,
+        first_name,
+        last_name,
+        iteration_count,
+        salt,
+        password_hash,
+        created_at
+    )
+    VALUES
+    (
+        $1::VARCHAR(355),   --email
+        $2::VARCHAR(100),   --first_name
+        $3::VARCHAR(100),   --last_name
+        $4::INT,            --iteration_count
+        $5::BYTEA,          --salt,
+        $6::BYTEA,          --password_hash,
+        $7::DATE            --created_at
+    )
+    ON CONFLICT DO NOTHING
+    RETURNING user_id, email;
+"#;
+
+async fn create_account_if_not_exists(
+	client: &Client,
+	request_info: &RegistrationRequest,
+	password_hash_info: &PasswordHashInfo,
+) -> Result<(u32, String), ServiceError> {
+	let statement = client.prepare(CREATE_USER_QUERY).await.unwrap();
+	let date = chrono::Utc::today().naive_utc();
+	let iteration_count = password_hash_info.iteration_count.get() as i32;
+
+	let rows = client
+		.query(
+			&statement,
+			&[
+				&request_info.email,
+				&request_info.first_name,
+				&request_info.last_name,
+				&iteration_count,
+				&password_hash_info.salt,
+				&password_hash_info.password_hash_final,
+				&date,
+			],
+		)
+		.await
+		.map_err(|e| ServiceError::InternalServerError(e.to_string()))?;
+
+	if rows.is_empty() {
+		// We did not successfully create a new account with the provided email address. An account
+		// with the given email address already exists.
+		Err(ServiceError::Conflict(format!(
+			"An account with the given email address {} already exists",
+			&request_info.email
+		)))
+	} else {
+		// We successfully created a new account with the given email address.
+		let (user_id, email): (i32, String) = (rows[0].get(0), rows[0].get(1));
+		Ok((user_id as u32, email))
+	}
+}
+
+fn make_success_response(user_id: u32, email: &str) -> HttpResponse {
 	let message = json!({
-		"message": format!("Account with email {} successfully created", email)
+		"message": format!("Account with email {} successfully created", email),
+		"data": {
+			"user_id": user_id,
+			"email": email
+		}
 	});
 
 	HttpResponse::Created().json(message)

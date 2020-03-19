@@ -1821,26 +1821,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tokio-pg-mapper"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61a81a69cf680fc324b426f3c1615784b415d5215ada3a5a416191dfa2d67939"
-dependencies = [
- "tokio-postgres",
-]
-
-[[package]]
-name = "tokio-pg-mapper-derive"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b6945ad3b3b9f035740a75b59b8fa0708514485967649d931255cd5acd4e614"
-dependencies = [
- "quote",
- "syn",
- "tokio-postgres",
-]
-
-[[package]]
 name = "tokio-postgres"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2069,8 +2049,6 @@ dependencies = [
  "serde_json",
  "thiserror",
  "tokio",
- "tokio-pg-mapper",
- "tokio-pg-mapper-derive",
  "tokio-postgres",
  "toml",
  "uuid",

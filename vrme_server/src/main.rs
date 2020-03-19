@@ -16,7 +16,7 @@ use std::net;
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Max JSON size in kB.
-const MAX_JSON_SIZE: usize = 32;
+const MAX_JSON_SIZE: usize = 4096;
 
 /// Main entry point to the Virtual Reality Meeting Environment backend server.
 ///

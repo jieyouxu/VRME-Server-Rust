@@ -1,10 +1,8 @@
 //! An user account.
 
-use tokio_pg_mapper_derive::PostgresMapper;
-
 /// Newtype declarartion on `chrono::NaiveDate` which does not take into account timezone
 /// information.
-pub type Date = chrono::NaiveDate;
+pub type Date = chrono::Date<chrono::Utc>;
 
 /// An user account.
 ///
@@ -15,8 +13,7 @@ pub type Date = chrono::NaiveDate;
 /// 	  `SHA-256`.
 /// 	* Must be hashed to exactly **32** bytes long (take the first 32 bytes).
 /// 	* Must be Base64-encoded to **43** base64 characters long.
-#[derive(Debug, PostgresMapper)]
-#[pg_mapper(table = "accounts")]
+#[derive(Debug)]
 pub struct Account {
 	pub user_id: u32,
 	pub email: String,
