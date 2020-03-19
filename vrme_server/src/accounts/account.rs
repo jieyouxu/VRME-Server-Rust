@@ -4,6 +4,9 @@
 /// information.
 pub type Date = chrono::Date<chrono::Utc>;
 
+/// Unique identifier for a user's account.
+pub type Uuid = uuid::Uuid;
+
 /// An user account.
 ///
 /// - `Email` must be a valid [RFC 2822](https://tools.ietf.org/html/rfc2822)
@@ -15,7 +18,7 @@ pub type Date = chrono::Date<chrono::Utc>;
 /// 	* Must be Base64-encoded to **43** base64 characters long.
 #[derive(Debug)]
 pub struct Account {
-	pub user_id: u32,
+	pub user_id: Uuid,
 	pub email: String,
 	pub first_name: String,
 	pub last_name: String,

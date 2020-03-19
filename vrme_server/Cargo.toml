@@ -18,9 +18,9 @@ config = { version = "0.10.1", features = ["json", "yaml", "toml"] }
 toml = "0.5.6"
 actix-files = "0.2.1"
 envy = "0.4.1"
-uuid = "0.8.1"
+uuid = { version = "0.8.1", features = ["serde", "v4"] }
 tokio = "0.2.13"
-tokio-postgres = { version = "0.5.3", features = ["with-chrono-0_4"] }
+tokio-postgres = { version = "0.5.3", features = ["with-chrono-0_4", "with-uuid-0_8"] }
 deadpool-postgres = "0.5.5"
 serde_json = "1.0.48"
 thiserror = "1.0.11"

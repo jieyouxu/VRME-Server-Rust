@@ -62,6 +62,14 @@ An account with the provided information is successfully created.
 
 ```http
 HTTP/1.1 201 Created
+Content-Type: application/json
+
+{
+    "data": {
+        "user_id": "...",
+        "email": "no-reply@example.com"
+    }
+}
 ```
 
 #### Failure: `400 Bad Request`

@@ -19,6 +19,7 @@ use ring::pbkdf2;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::num::NonZeroU32;
+use uuid::Uuid;
 
 /// Length of the extracted hashed password in bytes. This is for the raw hashed password bytes that
 /// is not Base64-encoded.
@@ -153,7 +154,7 @@ pub async fn handle_registration(
 		}
 	};
 
-	make_success_response(user_id, &email)
+	make_success_response(&user_id, &email)
 }
 
 async fn validate_request_payload(
@@ -336,6 +337,7 @@ pub async fn run_pbkdf2(
 const CREATE_USER_QUERY: &str = r#"
     INSERT INTO accounts
     (
+        user_id,
         email,
         first_name,
         last_name,
@@ -346,13 +348,14 @@ const CREATE_USER_QUERY: &str = r#"
     )
     VALUES
     (
-        $1::VARCHAR(355),   --email
-        $2::VARCHAR(100),   --first_name
-        $3::VARCHAR(100),   --last_name
-        $4::INT,            --iteration_count
-        $5::BYTEA,          --salt,
-        $6::BYTEA,          --password_hash,
-        $7::DATE            --created_at
+        $1::UUID,           --user_id
+        $2::VARCHAR(355),   --email
+        $3::VARCHAR(100),   --first_name
+        $4::VARCHAR(100),   --last_name
+        $5::INT,            --iteration_count
+        $6::BYTEA,          --salt,
+        $7::BYTEA,          --password_hash,
+        $8::DATE            --created_at
     )
     ON CONFLICT DO NOTHING
     RETURNING user_id, email;
@@ -362,8 +365,9 @@ async fn create_account_if_not_exists(
 	client: &Client,
 	request_info: &RegistrationRequest,
 	password_hash_info: &PasswordHashInfo,
-) -> Result<(u32, String), ServiceError> {
+) -> Result<(Uuid, String), ServiceError> {
 	let statement = client.prepare(CREATE_USER_QUERY).await.unwrap();
+    let uuid = Uuid::new_v4();
 	let date = chrono::Utc::today().naive_utc();
 	let iteration_count = password_hash_info.iteration_count.get() as i32;
 
@@ -371,6 +375,7 @@ async fn create_account_if_not_exists(
 		.query(
 			&statement,
 			&[
+                &uuid,
 				&request_info.email,
 				&request_info.first_name,
 				&request_info.last_name,
@@ -392,12 +397,12 @@ async fn create_account_if_not_exists(
 		)))
 	} else {
 		// We successfully created a new account with the given email address.
-		let (user_id, email): (i32, String) = (rows[0].get(0), rows[0].get(1));
-		Ok((user_id as u32, email))
+		let (user_id, email) = (rows[0].get(0), rows[0].get(1));
+		Ok((user_id, email))
 	}
 }
 
-fn make_success_response(user_id: u32, email: &str) -> HttpResponse {
+fn make_success_response(user_id: &Uuid, email: &str) -> HttpResponse {
 	let message = json!({
 		"message": format!("Account with email {} successfully created", email),
 		"data": {
