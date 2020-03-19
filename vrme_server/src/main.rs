@@ -15,7 +15,7 @@ use std::net;
 /// Package version.
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-/// Max JSON size in kB
+/// Max JSON size in kB.
 const MAX_JSON_SIZE: usize = 32;
 
 /// Main entry point to the Virtual Reality Meeting Environment backend server.
@@ -78,6 +78,20 @@ async fn main() -> std::io::Result<()> {
 	.await
 }
 
+/// Custom JSON error handler.
+///
+/// When a JSON error is encountered, it returns a detailed error message for the malformed payload,
+/// both for syntactical malformed payload and for semantically malformed payload such as missing
+/// fields.
+///
+/// # Example Error Response
+///
+/// ```json
+/// {
+///     "cause": "bad-request",
+///     "message": "Invalid JSON at [line = 1, col = 1]"
+/// }
+/// ```
 fn handle_json_error(err: JsonPayloadError, _req: &HttpRequest) -> Error {
 	let err_msg = match err {
 		JsonPayloadError::Overflow => {
@@ -88,8 +102,6 @@ fn handle_json_error(err: JsonPayloadError, _req: &HttpRequest) -> Error {
 		}
 		JsonPayloadError::Deserialize(ref e) => {
 			use serde_json::error::Category;
-			// Unfortunately `serde_json`'s Errors are opaque and do not contain useful information
-			// such as missing fields.
 			match e.classify() {
 				Category::Syntax => format!(
 					"Invalid JSON at [line = {}, col = {}]",
@@ -97,8 +109,15 @@ fn handle_json_error(err: JsonPayloadError, _req: &HttpRequest) -> Error {
 					e.column()
 				),
 				Category::Data => {
-					"Missing required field(s) and/or values have invalid types"
-						.to_string()
+					// Unfortunately `serde_json`'s Errors are opaque and do not contain useful
+					// information such as missing fields.
+					//
+					// Hence, we can only exploit it's `std::fmt::Display`'s implementation to get
+					// which field is missing that is required.
+					format!(
+                        "Missing required field(s) and/or values have invalid types: {}",
+                        e.to_string()
+                    )
 				}
 				Category::Eof => {
 					"Expected EOF when trying to parse JSON".to_string()
