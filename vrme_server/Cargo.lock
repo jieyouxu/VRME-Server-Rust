@@ -1371,6 +1371,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e634590e8812c500088d88db721195979223dabb05149f43cb50931d0ff5865d"
 dependencies = [
  "bytes",
+ "chrono",
  "fallible-iterator",
  "postgres-protocol",
 ]
@@ -1829,6 +1830,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "tokio-pg-mapper-derive"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3b6945ad3b3b9f035740a75b59b8fa0708514485967649d931255cd5acd4e614"
+dependencies = [
+ "quote",
+ "syn",
+ "tokio-postgres",
+]
+
+[[package]]
 name = "tokio-postgres"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2058,6 +2070,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tokio-pg-mapper",
+ "tokio-pg-mapper-derive",
  "tokio-postgres",
  "toml",
  "uuid",

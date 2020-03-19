@@ -117,7 +117,8 @@ pub async fn handle_registration(
 	}
 
 	// We then need to compute the `PasswordHashInfo` to store them into the database.
-	let password_hash_info = match run_pbkdf2(&mut client_password_hash).await {
+	let _password_hash_info = match run_pbkdf2(&mut client_password_hash).await
+	{
 		Ok(info) => info,
 		Err(e) => {
 			debug!("{}", &e);
@@ -126,6 +127,7 @@ pub async fn handle_registration(
 	};
 
 	// TODO: actual registration logic
+
 	make_success_response(&payload.email)
 }
 
@@ -222,7 +224,7 @@ async fn base64_decode(
 ) -> Result<(), ServiceError> {
 	let bytes = match base64::decode(encoded_hashed_password) {
 		Ok(b) => b,
-		Err(e) => {
+		Err(_) => {
 			return Err(ServiceError::BadRequest(
 				"Invalid Base64 encoding of hashed password".to_string(),
 			));
