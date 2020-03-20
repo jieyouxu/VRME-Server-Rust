@@ -9,12 +9,14 @@ Protected API endpoints require that the `Authorization` header be filled in
 with a valid authentication payload sent by the user:
 
 ```json
-{"email":"no-reply@example.com", "auth-token":"base64-encoded"}
+{"uuid":"123e4567-e89b-12d3-a456-426655440000", "auth-token":"base64-encoded"}
 ```
+
+This is then base64 encoded:
 
 ```http
 POST /logout HTTP/1.1
-Authorization: Bearer {"email":"no-reply@example.com", "auth-token":"base64-encoded"}
+Authorization: Bearer eyJ1dWlkIjoiMTIzZTQ1NjctZTg5Yi0xMmQzLWE0NTYtNDI2NjU1NDQwMDAwIiwgImF1dGgtdG9rZW4iOiJiYXNlNjQtZW5jb2RlZCJ9
 ```
 
 ## Typical Flow
