@@ -2,7 +2,6 @@
 
 Users need to create an account to use the VRME API.
 
-
 ## Create an Account by Registering
 
 ```http
@@ -65,10 +64,8 @@ HTTP/1.1 201 Created
 Content-Type: application/json
 
 {
-    "data": {
-        "user_id": "...",
-        "email": "no-reply@example.com"
-    }
+  "email": "no-reply@example.com",
+  "auth_token": "BASE64_ENCODED_AUTH_TOKEN"
 }
 ```
 
