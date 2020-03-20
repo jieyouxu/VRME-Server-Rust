@@ -1,27 +1,36 @@
-//! Client-facing errors and various error conversions.
+//! Errors and various error conversions.
 
 use actix_web::{error::ResponseError, HttpResponse};
-use deadpool_postgres;
+use derive_more::Display;
 use serde::Serialize;
 use serde_json::json;
-use thiserror::Error;
-use tokio_postgres;
 
-#[derive(Debug, Error, Serialize)]
+/// Client-facing service errors.
+#[derive(Debug, Display, Serialize)]
 pub enum ServiceError {
-	#[error("Internal Server Error: {0}")]
+	#[display(fmt = "internal server error: {}", "_0")]
 	InternalServerError(String),
 
-	#[error("Bad Request: {0}")]
+	#[display(fmt = "bad bequest: {}", "_0")]
 	BadRequest(String),
-	#[error("Unauthorized")]
+
+	#[display(fmt = "unauthorized")]
 	Unauthorized,
 
-	#[error("Forbidden")]
+	#[display(fmt = "forbidden")]
 	Forbidden,
 
-	#[error("Conflict")]
+	#[display(fmt = "conflict")]
 	Conflict(String),
+}
+
+impl std::error::Error for ServiceError {}
+
+// Allows easy conversion from `ServiceError -> HttpResponse`.
+impl std::convert::Into<HttpResponse> for ServiceError {
+	fn into(self) -> HttpResponse {
+		self.error_response()
+	}
 }
 
 impl ResponseError for ServiceError {
@@ -57,29 +66,5 @@ impl ResponseError for ServiceError {
 				}))
 			}
 		}
-	}
-}
-
-impl From<deadpool_postgres::PoolError> for ServiceError {
-	/// Converts `deadpool_postgres::PoolError` into `ServiceError::InternalServerError`.
-	fn from(error: deadpool_postgres::PoolError) -> Self {
-		use deadpool_postgres::PoolError;
-
-		match &error {
-			PoolError::Timeout(_) => Self::InternalServerError(
-				"Connection pool timed out".to_string(),
-			),
-			PoolError::Backend(ref e) => Self::InternalServerError(format!(
-				"Database error: {}",
-				e.to_string()
-			)),
-		}
-	}
-}
-
-impl From<tokio_postgres::error::Error> for ServiceError {
-	/// Converts from `tokio_postgres::error::Error` into `ServiceError::InternalServerError`.
-	fn from(error: tokio_postgres::error::Error) -> Self {
-		Self::InternalServerError(format!("Database error: {:?}", error))
 	}
 }

@@ -13,7 +13,7 @@ const NAME: &[u8] = br#"
                                |______|
 "#;
 
-/// Print welcome message.
+/// Prints welcome message.
 pub(crate) fn welcome() -> std::io::Result<()> {
 	let stdout = std::io::stdout();
 	let mut handle = stdout.lock();

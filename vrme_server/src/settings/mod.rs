@@ -10,29 +10,31 @@
 //! - JSON
 
 use config::{Config, ConfigError, Environment, File};
+use derive_more::Display;
 use log::{debug, error, info, warn};
 use serde::Deserialize;
 use std::env;
 use std::net::IpAddr;
-use thiserror::Error;
 
 /// Errors encountered when trying to determine the settings for the
 /// application.
-#[derive(Debug, Error)]
+#[derive(Debug, Display)]
 pub enum SettingsError {
 	/// Failed to find settings file.
-	#[error("settings file not found at: `{0}`")]
+	#[display(fmt = "settings file not found at: `{}`", "_0")]
 	NotFound(String),
 	/// Failed to read settings file due to IO errors.
-	#[error("failed to read settings due to IO error: `{0}`")]
-	IOError(#[from] std::io::Error),
+	#[display(fmt = "failed to read settings due to IO error: `{:?}`", "_0")]
+	IOError(std::io::Error),
 	/// Failed to parse settings file. Contains illegal syntax.
-	#[error("invalid syntax: `{0}`")]
+	#[display(fmt = "invalid syntax: `{}`", "_0")]
 	InvalidSyntax(String),
 	/// Other settings errors.
-	#[error("settings error: `{0}`")]
+	#[display(fmt = "settings error: `{:?}`", "_0")]
 	Other(Box<dyn std::error::Error>),
 }
+
+impl std::error::Error for SettingsError {}
 
 impl std::convert::From<ConfigError> for SettingsError {
 	fn from(error: ConfigError) -> Self {
@@ -59,6 +61,13 @@ pub struct DatabaseSettings {
 	pub hostname: IpAddr,
 	pub port: u16,
 	pub database_name: String,
+	/// Max number of database connections to maintain in a connection pool.
+	#[serde(default = "default_pool_size")]
+	pub pool_size: usize,
+}
+
+fn default_pool_size() -> usize {
+	32
 }
 
 /// Logging settings.
@@ -93,14 +102,27 @@ pub struct ServerSettings {
 	pub hostname: IpAddr,
 	/// Which port the application server should listen on.
 	pub port: u16,
+	/// Max JSON payload size in bytes.
+	#[serde(default = "default_json_size_limit")]
+	pub json_size_limit: usize,
 }
+
+fn default_json_size_limit() -> usize {
+	4096
+}
+
+// For the key `database.username`, the environment variable
+// `APP_DATABASE__USERNAME` will override the value read from the various
+// configuration files because environment variables have higher
+// precedence.
+pub const NESTED_SETTINGS_ENV_NAME_SEPARATOR: &str = "__";
 
 impl Settings {
 	/// Construct new settings.
 	///
 	/// # Settings Precedence
 	///
-	/// By default, the order that settings are overriden is (in order of
+	/// By default, the order that settings are overridden is (in order of
 	/// increasing precedence):
 	///
 	/// 1. Settings file.
@@ -116,6 +138,7 @@ impl Settings {
 		// We first mixin the configuration that is intended to be shared
 		// regardless of `RUN_MODE`.
 		cfg.merge(File::with_name("config/default"))?;
+
 		info!("Read config from `config/default`");
 		debug!("Provided config from `config/default`:\n {:#?}", &cfg);
 
@@ -145,7 +168,8 @@ impl Settings {
 					);
 				}
 				other => {
-					warn!("Invalid run mode: \"{}\" given, expected one of \"development\" or \"production\"", other);
+					warn!("Invalid run mode: \"{}\" given, expected one of \"development\" or \
+					 	\"production\"", other);
 					warn!("Only using configuration from `config/default`!");
 				}
 			};
@@ -157,18 +181,21 @@ impl Settings {
 		// # Example
 		//
 		// For the key `database.username`, the environment variable
-		// `APP_DATABASE_USERNAME` will override the value read from the various
+		// `APP_DATABASE__USERNAME` will override the value read from the various
 		// configuration files because environment variables have higher
 		// precedence.
-		cfg.merge(Environment::with_prefix("APP").separator("__"))?;
+		cfg.merge(
+			Environment::with_prefix("APP")
+				.separator(NESTED_SETTINGS_ENV_NAME_SEPARATOR),
+		)?;
 
 		info!("Mixed in configuration from environment variables");
 
 		match cfg.try_into() {
-			Ok(wellformed_settings) => {
+			Ok(validated_settings) => {
 				info!("Settings are validated");
-				debug!("Final settings:\n {:#?}", &wellformed_settings);
-				Ok(wellformed_settings)
+				debug!("Final settings:\n {:#?}", &validated_settings);
+				Ok(validated_settings)
 			}
 			Err(e) => {
 				error!("Settings could not be parsed!");
