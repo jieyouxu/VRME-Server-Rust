@@ -11,7 +11,7 @@ path = "src/main.rs"
 [dependencies]
 log = "0.4.8"
 env_logger = "0.7.1"
-actix-web = "2.0.0"
+actix-web = { version = "2.0.0", features = ["rustls"] }
 actix-rt = "1.0.0"
 serde = { version = "1.0.104", features = ["derive"] }
 config = { version = "0.10.1", features = ["json", "yaml", "toml"] }
@@ -28,3 +28,4 @@ base64 = "0.12.0"
 chrono = "0.4.11"
 ring = "0.16.11"
 rand = "0.7.3"
+rustls = "0.17.0"

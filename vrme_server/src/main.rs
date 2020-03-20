@@ -59,6 +59,7 @@ async fn main() -> std::io::Result<()> {
 
 	HttpServer::new(move || {
 		App::new()
+			.wrap(middleware::Compress::default())
 			.wrap(middleware::Logger::default())
 			.app_data(
 				web::JsonConfig::default()
