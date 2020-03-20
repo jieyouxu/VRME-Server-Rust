@@ -12,7 +12,6 @@ use crate::database::Pool;
 use crate::service_errors::ServiceError;
 use actix_web::{web, HttpResponse, ResponseError};
 use base64;
-use deadpool_postgres::Client;
 use log::debug;
 use rand;
 use ring::pbkdf2;
@@ -367,7 +366,7 @@ async fn create_account_if_not_exists(
 	password_hash_info: &PasswordHashInfo,
 ) -> Result<(Uuid, String), ServiceError> {
 	let statement = client.prepare(CREATE_USER_QUERY).await.unwrap();
-    let uuid = Uuid::new_v4();
+	let uuid = Uuid::new_v4();
 	let date = chrono::Utc::today().naive_utc();
 	let iteration_count = password_hash_info.iteration_count.get() as i32;
 
@@ -375,7 +374,7 @@ async fn create_account_if_not_exists(
 		.query(
 			&statement,
 			&[
-                &uuid,
+				&uuid,
 				&request_info.email,
 				&request_info.first_name,
 				&request_info.last_name,

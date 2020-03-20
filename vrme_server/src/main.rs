@@ -1,33 +1,27 @@
-pub mod accounts;
+// pub mod accounts;
 pub mod database;
+pub mod json_error_handler;
 pub mod logging;
 pub mod service_errors;
 pub mod settings;
-pub(crate) mod welcome;
+pub mod welcome;
 
-use actix_web::error::{Error, JsonPayloadError};
-use actix_web::{middleware, web, App, HttpRequest, HttpServer};
+use actix_web::web;
+use actix_web::HttpServer;
+use actix_web::{middleware, App};
 use log::{error, info};
-use serde_json;
-use service_errors::ServiceError;
 use std::net;
 
 /// Package version.
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-/// Max JSON size in kB.
-const MAX_JSON_SIZE: usize = 4096;
-
 /// Main entry point to the Virtual Reality Meeting Environment backend server.
 ///
 /// # Panics
-/// If configuration provided is invalid, the server instance will panic with
-/// error messages to indicate erroneous configuration.
 ///
-/// # Errors
-///
-/// Returns `std::io::Error` if the server instance fails to bind to the
-/// provided socket address.
+/// - If settings provided are invalid, the server instance will panic with
+///   error messages to indicate erroneous configuration.
+/// - Panics if failed to create a database connection pool.
 ///
 /// # Additional References
 ///
@@ -35,106 +29,59 @@ const MAX_JSON_SIZE: usize = 4096;
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
 	logging::init();
-
 	welcome::welcome()?;
 
 	info!("VRME_Server version {}", VERSION);
 
-	let settings = settings::Settings::new().unwrap_or_else(|ref e| {
-		error!("Failed to load settings:\n {:#?}", e);
-		std::process::exit(1);
-	});
+	let settings = read_settings();
 
-	let socket_addr =
+	let socket_address =
 		net::SocketAddr::new(settings.server.hostname, settings.server.port);
 
-	info!("Server listening on http://{}", &socket_addr);
+	info!("Server listening on http://{}", &socket_address);
 
-	let connection_pool = database::init_database_pool(&settings.database)
-		.unwrap_or_else(|ref e| {
-			error!("Failed to initialize PostgreSQL connection pool");
-			error!("Error cause: {}", e);
-			std::process::exit(1);
-		});
+	let connection_pool = create_connection_pool(&settings.database);
 
 	HttpServer::new(move || {
 		App::new()
 			.wrap(middleware::Compress::default())
 			.wrap(middleware::Logger::default())
+			.data(settings.clone())
 			.app_data(
 				web::JsonConfig::default()
-					.limit(MAX_JSON_SIZE)
-					.error_handler(handle_json_error),
+					.limit(settings.server.json_size_limit)
+					.error_handler(json_error_handler::handle_json_error),
 			)
-			.data(settings.clone())
 			.data(connection_pool.clone())
-			.service(
-				web::resource("/register").route(
-					web::post().to(accounts::register::handle_registration),
-				),
-			)
+
+		// .service(
+		// 	web::resource("/register")
+		// 		.route(web::post().to(accounts::register::handle_registration)),
+		// )
 	})
-	.bind(socket_addr)?
+	.bind(socket_address)?
 	.run()
 	.await
 }
 
-/// Custom JSON error handler.
-///
-/// When a JSON error is encountered, it returns a detailed error message for the malformed payload,
-/// both for syntactical malformed payload and for semantically malformed payload such as missing
-/// fields.
-///
-/// # Example Error Response
-///
-/// ```http
-/// HTTP/1.1 400 Bad Request
-/// Content-Type: application/json
-///
-/// {
-///     "cause": "bad-request",
-///     "message": "Invalid JSON at [line = 1, col = 1]"
-/// }
-/// ```
-fn handle_json_error(err: JsonPayloadError, _req: &HttpRequest) -> Error {
-	let err_msg = match err {
-		JsonPayloadError::Overflow => {
-			format!("Payload size exceeds the max limit: {} kB", MAX_JSON_SIZE)
+fn read_settings() -> settings::Settings {
+	match settings::Settings::new() {
+		Ok(s) => s,
+		Err(e) => {
+			error!("Invalid config provided:\n {:?}", &e);
+			panic!("Invalid config provided:\n {:?}", &e);
 		}
-		JsonPayloadError::ContentType => {
-			"Invalid `Content-Type` header: use `application/json`".to_string()
-		}
-		JsonPayloadError::Deserialize(ref e) => {
-			use serde_json::error::Category;
-			match e.classify() {
-				Category::Syntax => format!(
-					"Invalid JSON at [line = {}, col = {}]",
-					e.line(),
-					e.column()
-				),
-				Category::Data => {
-					// Unfortunately `serde_json`'s Errors are opaque and do not contain useful
-					// information such as missing fields.
-					//
-					// Hence, we can only exploit it's `std::fmt::Display`'s implementation to get
-					// which field is missing that is required.
-					format!(
-                        "Missing required field(s) and/or values have invalid types: {}",
-                        e.to_string()
-                    )
-				}
-				Category::Eof => {
-					"Expected EOF when trying to parse JSON".to_string()
-				}
-				Category::Io => "IO error when parsing JSON".to_string(),
-			}
-		}
-		_ => "Invalid JSON payload".to_string(),
-	};
+	}
+}
 
-	ServiceError::BadRequest(format!(
-		"Failed to parse payload as JSON: {}",
-		err_msg
-	))
-	.into()
+fn create_connection_pool(
+	settings: &settings::DatabaseSettings,
+) -> database::ConnectionPool {
+	match database::create_connection_pool(settings) {
+		Ok(pool) => pool,
+		Err(e) => {
+			error!("Failed to create connection pool: {:?}", &e);
+			panic!("Failed to create connection pool: {:?}", &e);
+		}
+	}
 }

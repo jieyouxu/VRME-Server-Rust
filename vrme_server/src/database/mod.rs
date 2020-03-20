@@ -1,42 +1,59 @@
 //! Database and connection pool setup and configuration.
 
 use crate::settings::DatabaseSettings;
-use deadpool_postgres::config::{Config, ConfigError};
+use derive_more::{Display, From};
+use diesel::pg::PgConnection;
+use diesel::r2d2::{ConnectionManager, Pool};
 use log::{debug, info};
-use tokio_postgres::NoTls;
 
 /// Database connection pool.
-///
-/// Type alias for `deadpool_postgres::Pool`.
-pub type Pool = deadpool_postgres::Pool;
+#[derive(From, Clone)]
+pub struct ConnectionPool(Pool<ConnectionManager<PgConnection>>);
+
+impl ConnectionPool {
+	/// Converts the `ConnectionPool` into the inner `r2d2::Pool` type and consumes the wrapper.
+	pub fn into_inner(self) -> Pool<ConnectionManager<PgConnection>> {
+		self.0
+	}
+}
+
+/// Errors related to database.
+#[derive(Debug, Display)]
+pub enum DatabaseError {
+	#[display(fmt = "failed to create pool: {}", "_0")]
+	PoolCreationError(String),
+}
+
+impl std::convert::From<r2d2::Error> for DatabaseError {
+	fn from(e: r2d2::Error) -> Self {
+		DatabaseError::PoolCreationError(e.to_string())
+	}
+}
 
 /// Initialize a PostgreSQL database pool.
 ///
 /// # Errors
 ///
 /// Reports the error in `String` description if the construction of a database pool failed.
-///
-/// See [bikeshedder/deadpool_postgres](https://github.com/bikeshedder/deadpool).
-pub fn init_database_pool(
+pub fn create_connection_pool(
 	database_settings: &DatabaseSettings,
-) -> Result<Pool, String> {
-	let postgre_config = Config {
-		user: Some(database_settings.username.clone()),
-		password: Some(database_settings.password.clone()),
-		dbname: Some(database_settings.database_name.clone()),
-		application_name: Some("VRME_Server".to_string()),
-		host: Some(database_settings.hostname.to_string()),
-		port: Some(database_settings.port),
-		..Config::default()
-	};
-
-	info!("Attempting to create a PostgreSQL connection pool");
-	debug!(
-		"Constructing connection pool using settings:\n {:#?}",
-		&postgre_config
+) -> Result<ConnectionPool, DatabaseError> {
+	let database_url = format!(
+		"postgres://{user}:{password}@{hostname}:{port}/{database_name}",
+		user = database_settings.username,
+		password = database_settings.password,
+		hostname = database_settings.hostname,
+		port = database_settings.port,
+		database_name = database_settings.database_name
 	);
 
-	postgre_config
-		.create_pool(NoTls)
-		.map_err(|ConfigError::Message(s)| s)
+	info!("Attempting to create a PostgreSQL connection pool");
+	debug!("Database URL: {}", &database_url);
+
+	let manager = ConnectionManager::<PgConnection>::new(database_url);
+	let pool = Pool::builder()
+		.max_size(database_settings.pool_size as u32)
+		.build(manager)?;
+
+	Ok(ConnectionPool(pool))
 }
