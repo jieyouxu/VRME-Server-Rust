@@ -65,6 +65,7 @@ Content-Type: application/json
 
 {
   "email": "no-reply@example.com",
+  "uuid": "123e4567-e89b-12d3-a456-426655440000",
   "auth_token": "BASE64_ENCODED_AUTH_TOKEN"
 }
 ```
