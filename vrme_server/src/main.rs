@@ -1,10 +1,10 @@
 // pub mod accounts;
-pub mod database;
-pub mod json_error_handler;
-pub mod logging;
+mod database;
+mod json_error_handler;
+mod logging;
 pub mod service_errors;
 pub mod settings;
-pub mod welcome;
+mod welcome;
 
 use actix_web::web;
 use actix_web::HttpServer;
