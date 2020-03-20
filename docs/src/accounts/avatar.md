@@ -26,11 +26,12 @@ Content-Type: image/png
 
 ## Update Avatar
 
-`PUT /user/{uuid}/avatar`
+Protected endpoint: `PUT /user/{uuid}/avatar`
 
 ```http
 PUT /user/{uuid}/avatar HTTP/1.1
 Content-Type: image/png
+Authorization: Bearer eyJ1dWlkIjoiMTIzZTQ1NjctZTg5Yi0xMmQzLWE0NTYtNDI2NjU1NDQwMDAwIiwgImF1dGgtdG9rZW4iOiJiYXNlNjQtZW5jb2RlZCJ9
 
 89 50 4E 47 0D 0A 1A 0A
 ```
@@ -44,6 +45,13 @@ HTTP/1.1 200 OK
 ## Delete Avatar
 
 Resets user avatar to default avatar.
+
+Protected endpoint: `DELETE /user/{uuid}/avatar`
+
+```http
+DELETE /user/{uuid}/avatar HTTP/1.1
+Authorization: Bearer eyJ1dWlkIjoiMTIzZTQ1NjctZTg5Yi0xMmQzLWE0NTYtNDI2NjU1NDQwMDAwIiwgImF1dGgtdG9rZW4iOiJiYXNlNjQtZW5jb2RlZCJ9
+```
 
 ### Successful Response
 
