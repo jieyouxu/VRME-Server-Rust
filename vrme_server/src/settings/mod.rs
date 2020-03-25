@@ -130,7 +130,13 @@ pub struct AuthSettings {
 	/// will be updated so the `auth_token` will restart its validity duration. In essence, if a
 	/// user authenticates more often with an `auth_token` then they don't need to login, unless
 	/// their `auth_token` was explicitly removed.
+    #[serde(default = "default_auth_token_validity_duration")]
 	pub auth_token_validity_duration: u64,
+}
+
+/// Default `auth_token` validity duration is 30 days.
+fn default_auth_token_validity_duration() -> u64 {
+	chrono::Duration::days(30).num_hours() as u64
 }
 
 // For the key `database.username`, the environment variable

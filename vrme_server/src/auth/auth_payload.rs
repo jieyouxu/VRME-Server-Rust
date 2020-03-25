@@ -1,7 +1,6 @@
 //! Authentication payload.
 
 use serde::{Serialize, Deserialize};
-use base64;
 
 /// Required authentication payload.
 #[derive(Debug, Serialize, Deserialize)]

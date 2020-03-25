@@ -278,6 +278,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "actix-web-httpauth"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e0dac4ea96f3f8f03731cecce375890fea6459a01f226bc9c31cc65cae047a03"
+dependencies = [
+ "actix-service",
+ "actix-web",
+ "base64 0.11.0",
+ "bytes",
+ "futures",
+]
+
+[[package]]
 name = "adler32"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2034,6 +2047,7 @@ dependencies = [
  "actix-files",
  "actix-rt",
  "actix-web",
+ "actix-web-httpauth",
  "base64 0.12.0",
  "chrono",
  "config",
