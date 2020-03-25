@@ -1,9 +1,13 @@
 //! Errors and various error conversions.
 
 use actix_web::{error::ResponseError, HttpResponse};
+use deadpool_postgres::PoolError;
 use derive_more::Display;
 use serde::Serialize;
 use serde_json::json;
+use std::convert::{From, Into};
+use tokio_pg_mapper::Error as TPGMError;
+use tokio_postgres::error::Error as TPGError;
 
 /// Client-facing service errors.
 #[derive(Debug, Display, Serialize)]
@@ -27,9 +31,27 @@ pub enum ServiceError {
 impl std::error::Error for ServiceError {}
 
 // Allows easy conversion from `ServiceError -> HttpResponse`.
-impl std::convert::Into<HttpResponse> for ServiceError {
+impl Into<HttpResponse> for ServiceError {
 	fn into(self) -> HttpResponse {
 		self.error_response()
+	}
+}
+
+impl From<TPGMError> for ServiceError {
+	fn from(e: TPGMError) -> Self {
+		Self::InternalServerError(e.to_string())
+	}
+}
+
+impl From<TPGError> for ServiceError {
+	fn from(e: TPGError) -> Self {
+		Self::InternalServerError(e.to_string())
+	}
+}
+
+impl From<PoolError> for ServiceError {
+	fn from(e: PoolError) -> Self {
+		Self::InternalServerError(e.to_string())
 	}
 }
 
