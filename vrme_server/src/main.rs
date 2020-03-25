@@ -1,4 +1,4 @@
-// pub mod accounts;
+pub mod accounts;
 mod database;
 mod json_error_handler;
 mod logging;
@@ -53,11 +53,11 @@ async fn main() -> std::io::Result<()> {
 					.error_handler(json_error_handler::handle_json_error),
 			)
 			.data(connection_pool.clone())
-
-		// .service(
-		// 	web::resource("/register")
-		// 		.route(web::post().to(accounts::register::handle_registration)),
-		// )
+			.service(
+				web::resource("/register").route(
+					web::post().to(accounts::register::handle_registration),
+				),
+			)
 	})
 	.bind(socket_address)?
 	.run()
@@ -77,7 +77,7 @@ fn read_settings() -> settings::Settings {
 fn create_connection_pool(
 	settings: &settings::DatabaseSettings,
 ) -> database::ConnectionPool {
-	match database::create_connection_pool(settings) {
+	match database::ConnectionPool::from_settings(settings) {
 		Ok(pool) => pool,
 		Err(e) => {
 			error!("Failed to create connection pool: {:?}", &e);

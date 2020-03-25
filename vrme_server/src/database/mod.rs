@@ -1,59 +1,74 @@
 //! Database and connection pool setup and configuration.
 
 use crate::settings::DatabaseSettings;
+use deadpool_postgres::{config, Client, Pool, PoolError};
 use derive_more::{Display, From};
-use diesel::pg::PgConnection;
-use diesel::r2d2::{ConnectionManager, Pool};
-use log::{debug, info};
+use log::{debug, error, info};
+use std::convert::From;
+use tokio_postgres::NoTls;
 
 /// Database connection pool.
 #[derive(From, Clone)]
-pub struct ConnectionPool(Pool<ConnectionManager<PgConnection>>);
+pub struct ConnectionPool(Pool);
 
 impl ConnectionPool {
-	/// Converts the `ConnectionPool` into the inner `r2d2::Pool` type and consumes the wrapper.
-	pub fn into_inner(self) -> Pool<ConnectionManager<PgConnection>> {
-		self.0
+	/// Initialize a PostgreSQL database pool from supplied `database_settings`.
+	pub fn from_settings(
+		database_settings: &DatabaseSettings,
+	) -> Result<ConnectionPool, DatabaseError> {
+		let database_settings = database_settings.clone();
+
+		let postgres_config = config::Config {
+			user: Some(database_settings.username),
+			password: Some(database_settings.password),
+			host: Some(database_settings.hostname.to_string()),
+			port: Some(database_settings.port),
+			dbname: Some(database_settings.database_name),
+			..config::Config::default()
+		};
+
+		info!("Attempting to create a PostgreSQL connection pool");
+		debug!(
+			"Supplied database settings for initializing connection pool:\n {:?}",
+			&postgres_config
+		);
+
+		let pool = postgres_config.create_pool(NoTls);
+
+		match pool {
+			Ok(pool) => {
+				info!("Successfully initialized database connection pool");
+				Ok(ConnectionPool(pool))
+			}
+			Err(e) => {
+				error!("Successfully initialized database connection pool");
+				Err(e.into())
+			}
+		}
+	}
+
+	/// Get a `deadpool_postgres::Client` to execute queries.
+	pub async fn get(&self) -> Result<Client, DatabaseError> {
+		self.0.get().await.map_err(|e| e.into())
 	}
 }
 
 /// Errors related to database.
 #[derive(Debug, Display)]
 pub enum DatabaseError {
+	/// Failed to create a database connection pool.
 	#[display(fmt = "failed to create pool: {}", "_0")]
 	PoolCreationError(String),
 }
 
-impl std::convert::From<r2d2::Error> for DatabaseError {
-	fn from(e: r2d2::Error) -> Self {
-		DatabaseError::PoolCreationError(e.to_string())
+impl From<PoolError> for DatabaseError {
+	fn from(e: PoolError) -> Self {
+		Self::PoolCreationError(e.to_string())
 	}
 }
 
-/// Initialize a PostgreSQL database pool.
-///
-/// # Errors
-///
-/// Reports the error in `String` description if the construction of a database pool failed.
-pub fn create_connection_pool(
-	database_settings: &DatabaseSettings,
-) -> Result<ConnectionPool, DatabaseError> {
-	let database_url = format!(
-		"postgres://{user}:{password}@{hostname}:{port}/{database_name}",
-		user = database_settings.username,
-		password = database_settings.password,
-		hostname = database_settings.hostname,
-		port = database_settings.port,
-		database_name = database_settings.database_name
-	);
-
-	info!("Attempting to create a PostgreSQL connection pool");
-	debug!("Database URL: {}", &database_url);
-
-	let manager = ConnectionManager::<PgConnection>::new(database_url);
-	let pool = Pool::builder()
-		.max_size(database_settings.pool_size as u32)
-		.build(manager)?;
-
-	Ok(ConnectionPool(pool))
+impl From<config::ConfigError> for DatabaseError {
+	fn from(e: config::ConfigError) -> Self {
+		Self::PoolCreationError(e.to_string())
+	}
 }

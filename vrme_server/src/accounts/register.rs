@@ -8,8 +8,9 @@
 //!
 //! - [SHA-256](https://tools.ietf.org/html/rfc4634)
 
-use crate::database::Pool;
+use crate::database::ConnectionPool;
 use crate::service_errors::ServiceError;
+use deadpool_postgres::{Client};
 use actix_web::{web, HttpResponse, ResponseError};
 use base64;
 use log::debug;
@@ -100,7 +101,7 @@ pub struct RegistrationRequest {
 /// Refer to the API endpoint documentation for possible error responses.
 pub async fn handle_registration(
 	request_info: web::Json<RegistrationRequest>,
-	pool: web::Data<Pool>,
+	pool: web::Data<ConnectionPool>,
 ) -> HttpResponse {
 	debug!("Request:\n {:?}", &request_info);
 

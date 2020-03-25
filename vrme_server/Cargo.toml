@@ -28,4 +28,4 @@ derive_more = { version = "0.99.3", features = ["from", "display"] }
 deadpool-postgres = "0.5.5"
 tokio-pg-mapper = "0.1.5"
 tokio-pg-mapper-derive = "0.1.5"
-tokio-postgres = "0.5.3"
+tokio-postgres = { version = "0.5.3", features = ["with-chrono-0_4", "with-serde_json-1", "with-uuid-0_8"] }
