@@ -15,6 +15,7 @@ use log::{debug, error, info, warn};
 use serde::Deserialize;
 use std::env;
 use std::net::IpAddr;
+use chrono::NaiveTime;
 
 /// Errors encountered when trying to determine the settings for the
 /// application.
@@ -51,6 +52,7 @@ pub struct Settings {
 	pub database: DatabaseSettings,
 	pub logging: LoggingSettings,
 	pub server: ServerSettings,
+	pub auth: AuthSettings,
 }
 
 /// Database settings.
@@ -109,6 +111,27 @@ pub struct ServerSettings {
 
 fn default_json_size_limit() -> usize {
 	4096
+}
+
+/// Authentication settings.
+#[derive(Debug, Deserialize, Clone)]
+pub struct AuthSettings {
+	/// Validity duration of `auth_token`s in hours. When there does not exist a `auth_token`
+	/// associated with the user of uuid `uuid`, the user must first login at `POST /login`. Upon
+	/// successful login, the client is able to use the `uuid` + `auth_token` combination to
+	/// authenticate themselves for accessing protected API endpoints as long the `auth_token` is
+	/// has not **expired** yet.
+	///
+	/// An `auth_token` is said to have **expired** when the last time an user used the `auth_token`
+	/// to access a protected endpoint was more than `auth_token_validity_duration` hours ago
+	/// compared to the current time.
+	///
+	/// However, before the `auth_token` expires, if a user uses the `auth_token` to authenticate
+	/// for a protected endpoint successfully, then the `last_used` time for the `auth_token`
+	/// will be updated so the `auth_token` will restart its validity duration. In essence, if a
+	/// user authenticates more often with an `auth_token` then they don't need to login, unless
+	/// their `auth_token` was explicitly removed.
+	pub auth_token_validity_duration: u64,
 }
 
 // For the key `database.username`, the environment variable
