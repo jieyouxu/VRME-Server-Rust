@@ -15,7 +15,6 @@ use log::{debug, error, info, warn};
 use serde::Deserialize;
 use std::env;
 use std::net::IpAddr;
-use chrono::NaiveTime;
 
 /// Errors encountered when trying to determine the settings for the
 /// application.
