@@ -3,6 +3,7 @@
 use actix_web::{error::ResponseError, HttpResponse};
 use deadpool_postgres::PoolError;
 use derive_more::Display;
+use rand::Error as RandError;
 use serde::Serialize;
 use serde_json::json;
 use std::convert::{From, Into};
@@ -88,5 +89,11 @@ impl ResponseError for ServiceError {
 				}))
 			}
 		}
+	}
+}
+
+impl From<RandError> for ServiceError {
+	fn from(e: RandError) -> Self {
+		Self::InternalServerError(e.to_string())
 	}
 }

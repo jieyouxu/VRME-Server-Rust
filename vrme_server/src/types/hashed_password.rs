@@ -1,5 +1,7 @@
 //! Hashed password newtype.
 
+use crate::service_errors::ServiceError;
+use actix_web::error::BlockingError;
 use actix_web::web;
 use rand;
 use ring::pbkdf2;
@@ -26,16 +28,14 @@ impl HashedPassword {
 	///   iterations used to compute the final hash.
 	pub async fn new(
 		client_hash: &[u8; HASHED_PASSWORD_LEN],
-	) -> Result<Self, String> {
+	) -> Result<Self, ServiceError> {
 		use rand::RngCore;
 
 		let client_hash = client_hash.clone();
 
-		web::block(move || -> Result<Self, String> {
+		web::block(move || -> Result<Self, ServiceError> {
 			let mut salt = [0u8; SALT_LEN];
-			rand::thread_rng()
-				.try_fill_bytes(&mut salt)
-				.map_err(|e| e.to_string())?;
+			rand::thread_rng().try_fill_bytes(&mut salt)?;
 
 			let mut hash = [0u8; HASHED_PASSWORD_LEN];
 
@@ -54,7 +54,12 @@ impl HashedPassword {
 			})
 		})
 		.await
-		.map_err(|e| e.to_string())
+		.map_err(|e| match e {
+			BlockingError::Error(e) => e,
+			BlockingError::Canceled => ServiceError::InternalServerError(
+				"Blocking operation unexpectedly cancelled".to_string(),
+			),
+		})
 	}
 }
 
