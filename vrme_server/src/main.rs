@@ -1,15 +1,16 @@
 pub mod accounts;
+pub mod auth;
 pub mod database;
 pub mod json_error_handler;
 pub mod logging;
 pub mod service_errors;
 pub mod settings;
 pub mod welcome;
-pub mod auth;
 
 use actix_web::web;
 use actix_web::HttpServer;
 use actix_web::{middleware, App};
+use actix_web_httpauth::middleware::HttpAuthentication;
 use log::{error, info};
 use std::net;
 
@@ -44,9 +45,13 @@ async fn main() -> std::io::Result<()> {
 	let connection_pool = create_connection_pool(&settings.database);
 
 	HttpServer::new(move || {
+		let auth_middleware =
+			HttpAuthentication::bearer(auth::middleware::identity_validator);
+
 		App::new()
 			.wrap(middleware::Compress::default())
 			.wrap(middleware::Logger::default())
+			.wrap(auth_middleware)
 			.data(settings.clone())
 			.app_data(
 				web::JsonConfig::default()
