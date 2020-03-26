@@ -42,7 +42,7 @@ pub struct LoginInfo {
 /// terms of its `last_used` datetime.
 pub async fn handle_login(
 	pool: web::Data<ConnectionPool>,
-	login_info: web::Data<LoginInfo>,
+	login_info: web::Json<LoginInfo>,
 ) -> HttpResponse {
 	let client = match pool.get().await {
 		Ok(client) => client,
