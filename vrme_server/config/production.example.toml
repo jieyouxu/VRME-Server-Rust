@@ -23,3 +23,9 @@ database_name = "vrme_server_prod"
 username = "vrme_server_user"
 # WARNING: Use a more secure password!
 password = "123456"
+
+[auth]
+# Length of `auth_token` in bytes
+auth_token_length = 32
+# Expiration time of `auth_token` in days
+auth_token_validity_duration = 30

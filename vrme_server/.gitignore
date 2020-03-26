@@ -1,7 +1,7 @@
 ### Configuration Files ###
 
 # Only keep example config files in version control
-config/
+config/*
 !config/default.example.toml
 !config/development.example.toml
 !config/production.example.toml
