@@ -1,6 +1,7 @@
 //! Errors and various error conversions.
 
 use actix_web::{error::ResponseError, HttpResponse};
+use base64::DecodeError;
 use deadpool_postgres::PoolError;
 use derive_more::Display;
 use rand::Error as RandError;
@@ -95,5 +96,20 @@ impl ResponseError for ServiceError {
 impl From<RandError> for ServiceError {
 	fn from(e: RandError) -> Self {
 		Self::InternalServerError(e.to_string())
+	}
+}
+
+impl From<DecodeError> for ServiceError {
+	fn from(e: DecodeError) -> Self {
+		Self::BadRequest(e.to_string())
+	}
+}
+
+impl From<std::str::Utf8Error> for ServiceError {
+	fn from(e: std::str::Utf8Error) -> Self {
+		Self::BadRequest(format!(
+			"Invalid UTF-8 byte sequence: {}",
+			e.to_string()
+		))
 	}
 }
