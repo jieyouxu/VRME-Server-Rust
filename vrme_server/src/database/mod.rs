@@ -61,6 +61,8 @@ pub enum DatabaseError {
 	PoolCreationError(String),
 }
 
+impl std::error::Error for DatabaseError {}
+
 impl From<PoolError> for DatabaseError {
 	fn from(e: PoolError) -> Self {
 		Self::PoolCreationError(e.to_string())
