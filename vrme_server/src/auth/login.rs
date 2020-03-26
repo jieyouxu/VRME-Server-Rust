@@ -3,6 +3,8 @@
 use crate::auth::auth_token::{AuthToken, AUTH_TOKEN_LEN};
 use crate::database::ConnectionPool;
 use crate::service_errors::ServiceError;
+use crate::types::client_hashed_password::ClientHashedPassword;
+use crate::types::hashed_password::HASHED_PASSWORD_LEN;
 use actix_web::web;
 use actix_web::{HttpResponse, ResponseError};
 use deadpool_postgres::Client;
@@ -38,7 +40,7 @@ pub struct LoginInfo {
 ///
 /// A successful login will cause the `auth_token` used for the login to be refreshed in
 /// terms of its `last_used` datetime.
-pub async fn login_handler(
+pub async fn handle_login(
 	pool: web::Data<ConnectionPool>,
 	login_info: web::Data<LoginInfo>,
 ) -> HttpResponse {
@@ -47,7 +49,13 @@ pub async fn login_handler(
 		Err(e) => return e.error_response(),
 	};
 
-	let uuid = match get_uuid_by_email(&client, &login_info.email).await {
+	let uuid = match check_registration(
+		&client,
+		&login_info.email,
+		&login_info.hashed_password,
+	)
+	.await
+	{
 		Ok(uuid) => uuid,
 		Err(e) => return e.error_response(),
 	};
@@ -63,22 +71,27 @@ pub async fn login_handler(
 	make_success_response(&uuid, &auth_token)
 }
 
-const GET_UUID_BY_EMAIL_QUERY: &str = r#"
+const CHECK_REGISTRATION_QUERY: &str = r#"
     SELECT
         user_id,
         email
     FROM accounts
     WHERE
         user_id = $1::UUID
+        AND hashed_password = $2:BYTEA
     ;
 "#;
 
-async fn get_uuid_by_email(
+async fn check_registration(
 	client: &Client,
 	email: &str,
+	client_hash: &str,
 ) -> Result<Uuid, ServiceError> {
-	let statement = client.prepare(GET_UUID_BY_EMAIL_QUERY).await.unwrap();
-	let row = client.query_one(&statement, &[&email]).await?;
+	let hash = ClientHashedPassword::new(client_hash)?.decode().await?;
+	let hash = &hash[..HASHED_PASSWORD_LEN];
+
+	let statement = client.prepare(CHECK_REGISTRATION_QUERY).await.unwrap();
+	let row = client.query_one(&statement, &[&email, &hash]).await?;
 
 	let uuid: Uuid = row.get(0);
 

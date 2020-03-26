@@ -5,8 +5,8 @@ pub mod json_error_handler;
 pub mod logging;
 pub mod service_errors;
 pub mod settings;
-pub mod welcome;
 pub mod types;
+pub mod welcome;
 
 use actix_web::web;
 use actix_web::HttpServer;
@@ -67,7 +67,11 @@ async fn main() -> std::io::Result<()> {
 				web::resource("/register").route(
 					web::post().to(accounts::register::handle_registration),
 				),
-				//.service(web::resource("/login").route(web::post().to()))
+			)
+			.service(
+				// Login
+				web::resource("/login")
+					.route(web::post().to(auth::login::handle_login)),
 			)
 	})
 	.bind(socket_address)?
