@@ -51,7 +51,6 @@ async fn main() -> std::io::Result<()> {
 		App::new()
 			.wrap(middleware::Compress::default())
 			.wrap(middleware::Logger::default())
-			.wrap(auth_middleware)
 			.data(settings.clone())
 			.app_data(
 				web::JsonConfig::default()
@@ -64,6 +63,7 @@ async fn main() -> std::io::Result<()> {
 					web::post().to(accounts::register::handle_registration),
 				),
 			)
+			//.service(web::resource("/login").route(web::post().to()))
 	})
 	.bind(socket_address)?
 	.run()
