@@ -29,3 +29,9 @@ password = "123456"
 auth_token_length = 32
 # Expiration time of `auth_token` in days
 auth_token_validity_duration = 30
+
+[rate_limiting]
+# How many seconds until the cooldown duration resets for each IP address?
+cooldown_duration = 60
+# How many requests for each unique IP address are allowed per duration?
+max_requests = 100

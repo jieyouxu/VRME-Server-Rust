@@ -52,6 +52,7 @@ pub struct Settings {
 	pub logging: LoggingSettings,
 	pub server: ServerSettings,
 	pub auth: AuthSettings,
+	pub rate_limiting: RateLimitingSettings,
 }
 
 /// Database settings.
@@ -148,6 +149,27 @@ fn default_auth_token_length() -> u32 {
 /// Default `auth_token` validity duration is 30 days.
 fn default_auth_token_validity_duration() -> u32 {
 	chrono::Duration::days(30).num_hours() as u32
+}
+
+/// Rate limiting settings.
+#[derive(Debug, Deserialize, Clone)]
+pub struct RateLimitingSettings {
+	/// How long (in seconds) before requests count is reset for each IP address.
+	#[serde(default = "default_cooldown_duration")]
+	pub cooldown_duration: u64,
+	/// How many requests are permitted for each IP address in the duration.
+	#[serde(default = "default_max_requests")]
+	pub max_requests: u64,
+}
+
+/// Default cooldown duration is `60` seconds.
+fn default_cooldown_duration() -> u64 {
+	60
+}
+
+/// Default max requests per duration is clamped to `100`.
+fn default_max_requests() -> u64 {
+	100
 }
 
 // For the key `database.username`, the environment variable
