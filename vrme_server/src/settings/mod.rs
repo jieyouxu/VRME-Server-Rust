@@ -159,7 +159,7 @@ pub struct RateLimitingSettings {
 	pub cooldown_duration: u64,
 	/// How many requests are permitted for each IP address in the duration.
 	#[serde(default = "default_max_requests")]
-	pub max_requests: u64,
+	pub max_requests: usize,
 }
 
 /// Default cooldown duration is `60` seconds.
@@ -168,7 +168,7 @@ fn default_cooldown_duration() -> u64 {
 }
 
 /// Default max requests per duration is clamped to `100`.
-fn default_max_requests() -> u64 {
+fn default_max_requests() -> usize {
 	100
 }
 

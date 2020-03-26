@@ -56,8 +56,10 @@ async fn main() -> std::io::Result<()> {
 			.wrap(
 				// Rate limiting
 				RateLimiter::new(MemoryStoreActor::from(rate_limit_memory_store.clone()).start())
-					.with_interval(std::time::Duration::from_secs(60))
-					.with_max_requests(100),
+					.with_interval(std::time::Duration::from_secs(
+						settings.rate_limiting.cooldown_duration,
+					))
+					.with_max_requests(settings.rate_limiting.max_requests),
 			)
 			.wrap(middleware::Logger::default())
 			.data(settings.clone())
