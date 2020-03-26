@@ -2,6 +2,7 @@
 //! across the network and is hashed by the client.
 
 use crate::service_errors::ServiceError;
+use crate::types::hashed_password::HASHED_PASSWORD_LEN;
 
 /// Base64-encoded client-side password hash.
 pub struct ClientHashedPassword {
@@ -35,9 +36,12 @@ impl ClientHashedPassword {
 
 	/// Decode the base64-encoded client-side hashed password to give the client-side hashed
 	/// password.
-	pub async fn decode(&self) -> Result<String, ServiceError> {
+	pub async fn decode(
+		&self,
+	) -> Result<[u8; HASHED_PASSWORD_LEN], ServiceError> {
+		let mut hash = [0u8; HASHED_PASSWORD_LEN];
 		let raw = base64::decode(&self.encoded_hash)?;
-		let hashed_password = std::str::from_utf8(&raw)?;
-		Ok(hashed_password.to_owned())
+		hash.copy_from_slice(&raw[..HASHED_PASSWORD_LEN]);
+		Ok(hash)
 	}
 }

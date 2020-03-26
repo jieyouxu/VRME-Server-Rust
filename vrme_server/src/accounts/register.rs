@@ -10,9 +10,9 @@
 
 use crate::database::ConnectionPool;
 use crate::service_errors::ServiceError;
-use crate::types::hashed_password::{HashedPassword, HASHED_PASSWORD_LEN};
+use crate::types::client_hashed_password::ClientHashedPassword;
+use crate::types::hashed_password::HashedPassword;
 use actix_web::{web, HttpResponse, ResponseError};
-use base64;
 use deadpool_postgres::Client;
 use log::debug;
 use serde::{Deserialize, Serialize};
@@ -74,13 +74,16 @@ pub async fn handle_registration(
 	}
 
 	// We first need to base64-decode the client password hash.
-	let mut client_password_hash = [0u8; HASHED_PASSWORD_LEN];
-	if let Err(e) =
-		base64_decode(&mut client_password_hash, &request_info.hashed_password)
-			.await
-	{
-		return e.error_response();
-	}
+	let client_password_hash =
+		match ClientHashedPassword::new(&request_info.hashed_password) {
+			Ok(hash) => hash,
+			Err(e) => return e.error_response(),
+		};
+
+	let client_password_hash = match client_password_hash.decode().await {
+		Ok(hash) => hash,
+		Err(e) => return e.error_response(),
+	};
 
 	// We then need to compute the `PasswordHashInfo` to store them into the database.
 	let password_hash_info =
@@ -126,7 +129,6 @@ async fn validate_request_payload(
 		validate_name_length(&payload.first_name, "first_name")?;
 		validate_name_length(&payload.last_name, "last_name")?;
 		validate_email(&payload.email)?;
-		validate_hashed_password(&payload.hashed_password)?;
 		Ok::<(), ServiceError>(())
 	})
 	.await
@@ -175,58 +177,6 @@ fn validate_email(email: &str) -> Result<(), ServiceError> {
 	}
 
 	Ok(())
-}
-
-fn validate_hashed_password(hashed_password: &str) -> Result<(), ServiceError> {
-	// `hahsed_password` *must* be the first 32-bytes of the hash of the raw password. The 32 bytes
-	// must then be Base64-encoded into 44 Base64 characters.
-	//
-	// Each base64 character can encode 6 bits (`64 == 2^6`), which means that 32 bytes require
-	// `Ceil(4/3 * 32) = 43` => nearest multiple of 4 is `44` Base64 characters to encode.
-	if hashed_password.len() != BASE64_ENCODED_HASHED_PASSWORD_LEN {
-		return Err(ServiceError::BadRequest(
-			format!(
-                "Invalid `hashed_password`: incorrect length {} when {} is required after {} \
-                bytes of password hash is base64-encoded",
-				hashed_password.len(),
-				BASE64_ENCODED_HASHED_PASSWORD_LEN,
-				HASHED_PASSWORD_LEN,
-			),
-		));
-	}
-
-	if let Err(e) = base64::decode(hashed_password) {
-		debug!("Invalid `hashed_password`: {}", e.to_string());
-		return Err(ServiceError::BadRequest(
-                "Invalid `hashed_password`: the provided hash is not a valid base64-encoded \
-                string".to_string()
-            )
-        );
-	}
-
-	Ok(())
-}
-
-async fn base64_decode(
-	hashed_password_buffer: &mut [u8; HASHED_PASSWORD_LEN],
-	encoded_hashed_password: &str,
-) -> Result<(), ServiceError> {
-	let bytes = match base64::decode(encoded_hashed_password) {
-		Ok(b) => b,
-		Err(_) => {
-			return Err(ServiceError::BadRequest(
-				"Invalid base64 encoding of hashed password".to_string(),
-			));
-		}
-	};
-
-	if bytes.len() != HASHED_PASSWORD_LEN {
-		return Err(ServiceError::BadRequest(
-			"base64-encoded hashed password has invalid length".to_string(),
-		));
-	}
-
-	Ok(hashed_password_buffer.copy_from_slice(&bytes))
 }
 
 const CREATE_USER_QUERY: &str = r#"
@@ -308,7 +258,3 @@ fn make_success_response(user_id: &Uuid, email: &str) -> HttpResponse {
 
 	HttpResponse::Created().json(message)
 }
-
-/// `32` bytes of password needs `(4 * 44) / 3).ceil() == 43` base64 characters to encode, and needs
-/// to be rounded up to `44` which is the next multiple of `4`.
-pub const BASE64_ENCODED_HASHED_PASSWORD_LEN: usize = 44;
