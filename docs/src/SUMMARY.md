@@ -8,3 +8,4 @@
     * [Updating User Account](./accounts/account-update.md)
     * [User Avatar](./accounts/avatar.md)
     * [Deleting User Account](./accounts/account-delete.md)
+    * [Getting UUID with Email](./accounts/get-uuid.md)
