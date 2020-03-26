@@ -74,16 +74,14 @@ async fn main() -> std::io::Result<()> {
 					.error_handler(json_error_handler::handle_json_error),
 			)
 			.data(connection_pool.clone())
-			.service(
-				// User registration
-				web::resource("/register").route(
-					web::post().to(accounts::register::handle_registration),
-				),
+			.route(
+				"/register",
+				web::post().to(accounts::register::handle_registration),
 			)
-			.service(
-				// Login
-				web::resource("/login")
-					.route(web::post().to(auth::login::handle_login)),
+			.route("/login", web::post().to(auth::login::handle_login))
+			.route(
+				"/accounts/uuid",
+				web::get().to(accounts::get_uuid::handle_get_uuid),
 			)
 	})
 	.bind(socket_address)?
