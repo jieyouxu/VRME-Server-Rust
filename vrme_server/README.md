@@ -11,15 +11,23 @@ createuser -P <USERNAME>
 2. Create database:
 
 ```bash
+createdb -O <USERNAME> <DATABASE_NAME>
+```
+
+3. Initialize tables:
+
+```bash
 psql -f src/database/setup/init_accounts.sql
 psql -f src/database/setup/init_auth_sessions.sql
 ```
 
-3. Edit configuration under `config/` and run the server:
+4. Edit configuration under `config/` and run the server:
 
 ```bash
 cargo run
 ```
+
+Remember to update the relevent sections in the suitable `config/*.toml`.
 
 ## Code Documentation
 
