@@ -1,6 +1,6 @@
 # Example Requests
 
-Using `httpie` as the tool:
+Using `httpie` as the tool: see [httpie](https://github.com/jakubroztocil/httpie/).
 
 ## Register an Account
 
@@ -9,7 +9,7 @@ Using `httpie` as the tool:
 - Apply `base64` encoding: `sO31+7iOCyh+r76az9YIwqaxoOzty+fUTNHNWJA0w+I=`
 
 ```bash
-http -v POST http://localhost:8080/register \ 
+http -v POST http://localhost:8080/register \
 	first_name="John" \
 	last_name="Doe" \
 	email="example@example.com" \
