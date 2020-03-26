@@ -49,6 +49,7 @@ async fn main() -> std::io::Result<()> {
 			HttpAuthentication::bearer(auth::middleware::identity_validator);
 
 		App::new()
+            .wrap(middleware::DefaultHeaders::new().header("X-Version", VERSION))
 			.wrap(middleware::Compress::default())
 			.wrap(middleware::Logger::default())
 			.data(settings.clone())
