@@ -8,6 +8,7 @@ pub mod settings;
 pub mod types;
 mod welcome;
 
+use actix_ratelimit::{MemoryStore, MemoryStoreActor, RateLimiter};
 use actix_web::web;
 use actix_web::HttpServer;
 use actix_web::{middleware, App};
@@ -49,11 +50,22 @@ async fn main() -> std::io::Result<()> {
 		let _auth_middleware =
 			HttpAuthentication::bearer(auth::middleware::identity_validator);
 
+		let rate_limit_memory_store = MemoryStore::new();
+
 		App::new()
 			.wrap(
 				middleware::DefaultHeaders::new().header("X-Version", VERSION),
 			)
 			.wrap(middleware::Compress::default())
+			.wrap(
+				// Rate limiting
+				RateLimiter::new(
+					MemoryStoreActor::from(rate_limit_memory_store.clone())
+						.start(),
+				)
+				.with_interval(std::time::Duration::from_secs(60))
+				.with_max_requests(100),
+			)
 			.wrap(middleware::Logger::default())
 			.data(settings.clone())
 			.app_data(
