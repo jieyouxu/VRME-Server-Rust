@@ -73,7 +73,7 @@ const CHECK_REGISTRATION_QUERY: &str = r#"
     FROM accounts
     WHERE
         user_id = $1::UUID
-        AND hashed_password = $2:BYTEA
+        AND hashed_password = $2::BYTEA
     ;
 "#;
 
