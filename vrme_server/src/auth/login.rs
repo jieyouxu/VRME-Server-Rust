@@ -4,12 +4,15 @@ use crate::auth::auth_token::{AuthToken, AUTH_TOKEN_LEN};
 use crate::database::ConnectionPool;
 use crate::service_errors::ServiceError;
 use crate::types::client_hashed_password::ClientHashedPassword;
-use crate::types::hashed_password::HASHED_PASSWORD_LEN;
+use crate::types::hashed_password::{PBKDF2_ALGORITHM, PBKDF2_ITERATIONS};
+use actix_web::error::BlockingError;
 use actix_web::web;
 use actix_web::{HttpResponse, ResponseError};
 use deadpool_postgres::Client;
+use ring::pbkdf2;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use std::num::NonZeroU32;
 use uuid::Uuid;
 
 /// Required login payload – the user needs to login with their `email` and `hashed_password`.
@@ -66,14 +69,14 @@ pub async fn handle_login(
 	make_success_response(&uuid, &auth_token)
 }
 
-const CHECK_REGISTRATION_QUERY: &str = r#"
+const GET_PREVIOUS_HASH_QUERY: &str = r#"
     SELECT
         user_id,
-        email
+        password_hash,
+        salt
     FROM accounts
     WHERE
         email = $1::VARCHAR(355)
-        AND password_hash = $2::BYTEA
     ;
 "#;
 
@@ -82,12 +85,11 @@ async fn check_registration(
 	email: &str,
 	client_hash: &str,
 ) -> Result<Uuid, ServiceError> {
-	let hash = ClientHashedPassword::new(client_hash)?.decode().await?;
-	let hash = &hash[..HASHED_PASSWORD_LEN];
+	let client_hash = ClientHashedPassword::new(client_hash)?.decode().await?;
 
-	let statement = client.prepare(CHECK_REGISTRATION_QUERY).await.unwrap();
+	let statement = client.prepare(GET_PREVIOUS_HASH_QUERY).await.unwrap();
 
-	let row = match client.query_one(&statement, &[&email, &hash]).await {
+	let row = match client.query_one(&statement, &[&email]).await {
 		Ok(row) => row,
 		Err(_) => {
 			return Err(ServiceError::Unauthorized(
@@ -96,7 +98,27 @@ async fn check_registration(
 		}
 	};
 
-	let uuid = row.get(0);
+	let uuid: Uuid = row.get(0);
+	let previously_derived: Vec<u8> = row.get(1);
+	let salt: Vec<u8> = row.get(2);
+
+	web::block(move || {
+		pbkdf2::verify(
+			PBKDF2_ALGORITHM,
+			NonZeroU32::new(PBKDF2_ITERATIONS as u32).unwrap(),
+			&salt,
+			&client_hash,
+			&previously_derived,
+		)
+	})
+	.await
+	.map_err(|e| match e {
+		BlockingError::Error(e) => e.into(),
+		BlockingError::Canceled => {
+			ServiceError::InternalServerError("Unexpectedly cancelled".to_string())
+		}
+	})?;
+
 	Ok(uuid)
 }
 

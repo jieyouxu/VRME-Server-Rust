@@ -104,3 +104,9 @@ impl From<std::str::Utf8Error> for ServiceError {
 		Self::BadRequest(format!("Invalid UTF-8 byte sequence: {}", e.to_string()))
 	}
 }
+
+impl From<ring::error::Unspecified> for ServiceError {
+	fn from(_: ring::error::Unspecified) -> Self {
+		Self::InternalServerError("Error encountered when performing crypto tasks".to_string())
+	}
+}
