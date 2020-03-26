@@ -107,10 +107,7 @@ pub async fn handle_registration(
 
 	if let Err(e) = validate_request_payload(request_info.clone()).await {
 		debug!("{}", &e);
-		return ServiceError::InternalServerError(
-			"Threading error".to_string(),
-		)
-		.error_response();
+		return e.error_response();
 	}
 
 	// We first need to base64-decode the client password hash.

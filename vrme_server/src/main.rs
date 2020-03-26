@@ -45,7 +45,7 @@ async fn main() -> std::io::Result<()> {
 	let connection_pool = create_connection_pool(&settings.database);
 
 	HttpServer::new(move || {
-		let auth_middleware =
+		let _auth_middleware =
 			HttpAuthentication::bearer(auth::middleware::identity_validator);
 
 		App::new()
