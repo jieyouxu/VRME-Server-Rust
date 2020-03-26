@@ -12,6 +12,7 @@ createuser -P <USERNAME>
 
 ```bash
 psql -f src/database/setup/init_accounts.sql
+psql -f src/database/setup/init_auth_sessions.sql
 ```
 
 3. Edit configuration under `config/` and run the server:
