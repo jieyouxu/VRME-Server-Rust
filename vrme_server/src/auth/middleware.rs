@@ -29,29 +29,14 @@ pub async fn identity_validator(
 	credentials: BearerAuth,
 ) -> Result<ServiceRequest, ActixError> {
 	let auth_settings = req.app_data::<Settings>().unwrap();
-	let auth_payload = match deserialize_payload(credentials.token()) {
-		Ok(payload) => payload,
-		Err(e) => {
-			return Err(e.into());
-		}
-	};
+	let auth_payload = deserialize_payload(credentials.token())?;
 
 	validate_auth_payload(&auth_settings.get_ref().auth, &auth_payload)?;
 
 	let pool = req.app_data::<ConnectionPool>().unwrap();
-	let client = match pool.get().await {
-		Ok(client) => client,
-		Err(e) => {
-			return Err(AuthError::from(e).into());
-		}
-	};
+	let client = pool.get().await?;
 
-	let last_used = match find_auth_session(&client, &auth_payload).await {
-		Ok(last_used) => last_used,
-		Err(e) => {
-			return Err(e.into());
-		}
-	};
+	let last_used = find_auth_session(&client, &auth_payload).await?;
 
 	let time_since = Utc::now().signed_duration_since(last_used).num_hours();
 
@@ -146,11 +131,5 @@ impl From<DecodeError> for AuthError {
 impl From<JsonError> for AuthError {
 	fn from(e: JsonError) -> Self {
 		Self::InvalidFormat(e.to_string())
-	}
-}
-
-impl From<AuthError> for ActixError {
-	fn from(e: AuthError) -> Self {
-		Self { cause: Box::new(e) }
 	}
 }

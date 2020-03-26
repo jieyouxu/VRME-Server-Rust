@@ -1,6 +1,7 @@
 //! Database and connection pool setup and configuration.
 
 use crate::settings::DatabaseSettings;
+use actix_web::ResponseError;
 use deadpool_postgres::{config, Client, Pool, PoolError};
 use derive_more::{Display, From};
 use log::{debug, error, info};
@@ -54,14 +55,12 @@ impl ConnectionPool {
 }
 
 /// Errors related to database.
-#[derive(Debug, Display)]
+#[derive(Debug, Display, PartialEq)]
 pub enum DatabaseError {
 	/// Failed to create a database connection pool.
 	#[display(fmt = "failed to create pool: {}", "_0")]
 	PoolCreationError(String),
 }
-
-impl std::error::Error for DatabaseError {}
 
 impl From<PoolError> for DatabaseError {
 	fn from(e: PoolError) -> Self {
@@ -74,3 +73,5 @@ impl From<config::ConfigError> for DatabaseError {
 		Self::PoolCreationError(e.to_string())
 	}
 }
+
+impl ResponseError for DatabaseError {}
