@@ -72,7 +72,7 @@ const CHECK_REGISTRATION_QUERY: &str = r#"
         email
     FROM accounts
     WHERE
-        user_id = $1::UUID
+        email = $1::VARCHAR(355)
         AND password_hash = $2::BYTEA
     ;
 "#;
@@ -86,10 +86,17 @@ async fn check_registration(
 	let hash = &hash[..HASHED_PASSWORD_LEN];
 
 	let statement = client.prepare(CHECK_REGISTRATION_QUERY).await.unwrap();
-	let row = client.query_one(&statement, &[&email, &hash]).await?;
 
-	let uuid: Uuid = row.get(0);
+	let row = match client.query_one(&statement, &[&email, &hash]).await {
+		Ok(row) => row,
+		Err(_) => {
+			return Err(ServiceError::Unauthorized(
+				"The email and password combination is invalid".to_string(),
+			));
+		}
+	};
 
+	let uuid = row.get(0);
 	Ok(uuid)
 }
 

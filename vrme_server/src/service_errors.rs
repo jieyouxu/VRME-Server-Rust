@@ -20,13 +20,13 @@ pub enum ServiceError {
 	#[display(fmt = "bad bequest: {}", "_0")]
 	BadRequest(String),
 
-	#[display(fmt = "unauthorized")]
-	Unauthorized,
+	#[display(fmt = "unauthorized: {}", "_0")]
+	Unauthorized(String),
 
-	#[display(fmt = "forbidden")]
-	Forbidden,
+	#[display(fmt = "forbidden: {}", "_0")]
+	Forbidden(String),
 
-	#[display(fmt = "conflict")]
+	#[display(fmt = "conflict: {}", "_0")]
 	Conflict(String),
 }
 
@@ -71,13 +71,13 @@ impl ResponseError for ServiceError {
 				"cause": "bad-request",
 				"message": s
 			})),
-			ServiceError::Forbidden => HttpResponse::Forbidden().json(json!({
+			ServiceError::Forbidden(ref s) => HttpResponse::Forbidden().json(json!({
 				"cause": "forbidden",
-				"message": "check login details; you may not have sufficient priviledges"
+				"message": s
 			})),
-			ServiceError::Unauthorized => HttpResponse::Unauthorized().json(json!({
+			ServiceError::Unauthorized(ref s) => HttpResponse::Unauthorized().json(json!({
 				"cause": "unauthorized",
-				"message": "attempting to access protected endpoint with invalid credentials"
+				"message": s
 			})),
 			ServiceError::Conflict(ref s) => HttpResponse::Conflict().json(json!({
 				"cause": "conflict",
