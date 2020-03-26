@@ -6,6 +6,7 @@ pub mod logging;
 pub mod service_errors;
 pub mod settings;
 pub mod welcome;
+pub mod types;
 
 use actix_web::web;
 use actix_web::HttpServer;
@@ -49,7 +50,9 @@ async fn main() -> std::io::Result<()> {
 			HttpAuthentication::bearer(auth::middleware::identity_validator);
 
 		App::new()
-            .wrap(middleware::DefaultHeaders::new().header("X-Version", VERSION))
+			.wrap(
+				middleware::DefaultHeaders::new().header("X-Version", VERSION),
+			)
 			.wrap(middleware::Compress::default())
 			.wrap(middleware::Logger::default())
 			.data(settings.clone())
@@ -60,11 +63,12 @@ async fn main() -> std::io::Result<()> {
 			)
 			.data(connection_pool.clone())
 			.service(
+				// User registration
 				web::resource("/register").route(
 					web::post().to(accounts::register::handle_registration),
 				),
+				//.service(web::resource("/login").route(web::post().to()))
 			)
-			//.service(web::resource("/login").route(web::post().to()))
 	})
 	.bind(socket_address)?
 	.run()
