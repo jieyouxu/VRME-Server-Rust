@@ -60,10 +60,10 @@ impl HashedPassword {
 
 /// Length of the extracted hashed password in bytes. This is for the raw hashed password bytes that
 /// is not Base64-encoded.
-pub const HASHED_PASSWORD_LEN: usize = 32;
+pub(crate) const HASHED_PASSWORD_LEN: usize = 32;
 
 /// Length of the randomly generated salt in bytes.
-pub const SALT_LEN: usize = 16;
+const SALT_LEN: usize = 16;
 
 /// We use the `PBKDF2` algorithm to compute the password hash in a secure fashion, with the core
 /// hash function being `HMAC-SHA-256`.
@@ -83,4 +83,4 @@ static PBKDF2_ALGORITHM: pbkdf2::Algorithm = pbkdf2::PBKDF2_HMAC_SHA256;
 /// As computing power increases, the number of iterations should also be increased to ensure the
 /// difficulity (in computing time) for an potential adversay to try to compute a rainbow table for
 /// the `PBKDF2` + `HMAC-SHA-256` combination.
-pub const PBKDF2_ITERATIONS: usize = 100_000;
+const PBKDF2_ITERATIONS: usize = 100_000;
