@@ -10,9 +10,9 @@
 
 use crate::database::ConnectionPool;
 use crate::service_errors::ServiceError;
-use deadpool_postgres::{Client};
 use actix_web::{web, HttpResponse, ResponseError};
 use base64;
+use deadpool_postgres::Client;
 use log::debug;
 use rand;
 use ring::pbkdf2;
