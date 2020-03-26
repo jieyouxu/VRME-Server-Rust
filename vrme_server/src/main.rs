@@ -1,12 +1,12 @@
 pub mod accounts;
 pub mod auth;
 pub mod database;
-pub mod json_error_handler;
+mod json_error_handler;
 pub mod logging;
 pub mod service_errors;
 pub mod settings;
 pub mod types;
-pub mod welcome;
+mod welcome;
 
 use actix_web::web;
 use actix_web::HttpServer;
