@@ -187,28 +187,21 @@ impl Settings {
 		if let Ok(run_mode) = env::var("RUN_MODE") {
 			match &run_mode[..] {
 				"development" => {
-					cfg.merge(
-						File::with_name("config/default").required(false),
-					)?;
+					cfg.merge(File::with_name("config/default").required(false))?;
 					info!("Reading config from `config/development`");
-					debug!(
-						"Provided config from `config/development`:\n {:#?}",
-						&cfg
-					);
+					debug!("Provided config from `config/development`:\n {:#?}", &cfg);
 				}
 				"production" => {
-					cfg.merge(
-						File::with_name("config/production").required(false),
-					)?;
+					cfg.merge(File::with_name("config/production").required(false))?;
 					info!("Reading config from `config/production`");
-					debug!(
-						"Provided config from `config/production`:\n {:#?}",
-						&cfg
-					);
+					debug!("Provided config from `config/production`:\n {:#?}", &cfg);
 				}
 				other => {
-					warn!("Invalid run mode: \"{}\" given, expected one of \"development\" or \
-					 	\"production\"", other);
+					warn!(
+						"Invalid run mode: \"{}\" given, expected one of \"development\" or \
+					 	\"production\"",
+						other
+					);
 					warn!("Only using configuration from `config/default`!");
 				}
 			};
@@ -223,10 +216,7 @@ impl Settings {
 		// `APP_DATABASE__USERNAME` will override the value read from the various
 		// configuration files because environment variables have higher
 		// precedence.
-		cfg.merge(
-			Environment::with_prefix("APP")
-				.separator(NESTED_SETTINGS_ENV_NAME_SEPARATOR),
-		)?;
+		cfg.merge(Environment::with_prefix("APP").separator(NESTED_SETTINGS_ENV_NAME_SEPARATOR))?;
 
 		info!("Mixed in configuration from environment variables");
 

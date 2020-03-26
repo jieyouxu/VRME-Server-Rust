@@ -50,8 +50,6 @@ pub struct UpdateAccountInformationRequest {
 ///
 /// If the `uuid` of a user is lost by the client, it is possible to recover the `uuid` of the user
 /// by the `GET /user/uuid` endpoint.
-pub async fn update_user_account_handler(
-	_path: web::Path<uuid::Uuid>,
-) -> HttpResponse {
+pub async fn update_user_account_handler(_path: web::Path<uuid::Uuid>) -> HttpResponse {
 	unimplemented!()
 }

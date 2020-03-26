@@ -74,11 +74,10 @@ pub async fn handle_registration(
 	}
 
 	// We first need to base64-decode the client password hash.
-	let client_password_hash =
-		match ClientHashedPassword::new(&request_info.hashed_password) {
-			Ok(hash) => hash,
-			Err(e) => return e.error_response(),
-		};
+	let client_password_hash = match ClientHashedPassword::new(&request_info.hashed_password) {
+		Ok(hash) => hash,
+		Err(e) => return e.error_response(),
+	};
 
 	let client_password_hash = match client_password_hash.decode().await {
 		Ok(hash) => hash,
@@ -86,45 +85,35 @@ pub async fn handle_registration(
 	};
 
 	// We then need to compute the `PasswordHashInfo` to store them into the database.
-	let password_hash_info =
-		match HashedPassword::new(&client_password_hash).await {
-			Ok(info) => info,
-			Err(e) => {
-				debug!("{}", &e);
-				return ServiceError::InternalServerError(e.to_string())
-					.error_response();
-			}
-		};
+	let password_hash_info = match HashedPassword::new(&client_password_hash).await {
+		Ok(info) => info,
+		Err(e) => {
+			debug!("{}", &e);
+			return ServiceError::InternalServerError(e.to_string()).error_response();
+		}
+	};
 
 	let client = match pool.get().await {
 		Ok(client) => client,
 		Err(e) => {
 			debug!("{}", &e);
-			return ServiceError::InternalServerError(e.to_string())
-				.error_response();
+			return ServiceError::InternalServerError(e.to_string()).error_response();
 		}
 	};
 
-	let (user_id, email) = match create_account_if_not_exists(
-		&client,
-		&request_info,
-		&password_hash_info,
-	)
-	.await
-	{
-		Ok((user_id, email)) => (user_id, email),
-		Err(e) => {
-			debug!("{}", &e);
-			return e.error_response();
-		}
-	};
+	let (user_id, email) =
+		match create_account_if_not_exists(&client, &request_info, &password_hash_info).await {
+			Ok((user_id, email)) => (user_id, email),
+			Err(e) => {
+				debug!("{}", &e);
+				return e.error_response();
+			}
+		};
 
 	make_success_response(&user_id, &email)
 }
 
-async fn validate_request_payload(
-	payload: RegistrationRequest,
-) -> Result<(), ServiceError> {
+async fn validate_request_payload(payload: RegistrationRequest) -> Result<(), ServiceError> {
 	web::block(move || {
 		validate_name_length(&payload.first_name, "first_name")?;
 		validate_name_length(&payload.last_name, "last_name")?;
@@ -141,10 +130,7 @@ async fn validate_request_payload(
 	})
 }
 
-fn validate_name_length(
-	name: &str,
-	name_kind: &str,
-) -> Result<(), ServiceError> {
+fn validate_name_length(name: &str, name_kind: &str) -> Result<(), ServiceError> {
 	if name.is_empty() {
 		return Err(ServiceError::BadRequest(format!(
 			"`{}` canot be empty",

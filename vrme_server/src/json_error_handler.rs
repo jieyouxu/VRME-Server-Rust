@@ -22,18 +22,12 @@ use actix_web::HttpRequest;
 pub fn handle_json_error(err: JsonPayloadError, _req: &HttpRequest) -> Error {
 	let err_msg = make_error_message(err);
 
-	ServiceError::BadRequest(format!(
-		"Failed to parse payload as JSON: {}",
-		err_msg
-	))
-	.into()
+	ServiceError::BadRequest(format!("Failed to parse payload as JSON: {}", err_msg)).into()
 }
 
 fn make_error_message(err: JsonPayloadError) -> String {
 	match err {
-		JsonPayloadError::Overflow => {
-			format!("Payload size exceeds the max limit")
-		}
+		JsonPayloadError::Overflow => format!("Payload size exceeds the max limit"),
 		JsonPayloadError::ContentType => {
 			"Invalid `Content-Type` header: use `application/json`".to_string()
 		}

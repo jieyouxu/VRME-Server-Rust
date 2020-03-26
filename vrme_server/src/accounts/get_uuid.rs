@@ -38,10 +38,7 @@ const GET_UUID_GIVEN_EMAIL_QUERY: &str = r#"
 "#;
 
 /// Retreive the user's `Uuid` given their `email` address.
-async fn get_uuid_given_email(
-	client: &Client,
-	email: &str,
-) -> Result<Uuid, ServiceError> {
+async fn get_uuid_given_email(client: &Client, email: &str) -> Result<Uuid, ServiceError> {
 	let statement = client.prepare(GET_UUID_GIVEN_EMAIL_QUERY).await.unwrap();
 	let row = client.query_one(&statement, &[&email]).await?;
 	let uuid = row.get(0);

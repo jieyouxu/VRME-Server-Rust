@@ -36,9 +36,7 @@ impl ClientHashedPassword {
 
 	/// Decode the base64-encoded client-side hashed password to give the client-side hashed
 	/// password.
-	pub async fn decode(
-		&self,
-	) -> Result<[u8; HASHED_PASSWORD_LEN], ServiceError> {
+	pub async fn decode(&self) -> Result<[u8; HASHED_PASSWORD_LEN], ServiceError> {
 		let mut hash = [0u8; HASHED_PASSWORD_LEN];
 		let raw = base64::decode(&self.encoded_hash)?;
 		hash.copy_from_slice(&raw[..HASHED_PASSWORD_LEN]);

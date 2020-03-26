@@ -67,28 +67,22 @@ impl ResponseError for ServiceError {
 					"message": s
 				}))
 			}
-			ServiceError::BadRequest(ref s) => {
-				HttpResponse::BadRequest().json(json!({
-					"cause": "bad-request",
-					"message": s
-				}))
-			}
+			ServiceError::BadRequest(ref s) => HttpResponse::BadRequest().json(json!({
+				"cause": "bad-request",
+				"message": s
+			})),
 			ServiceError::Forbidden => HttpResponse::Forbidden().json(json!({
 				"cause": "forbidden",
 				"message": "check login details; you may not have sufficient priviledges"
 			})),
-			ServiceError::Unauthorized => {
-				HttpResponse::Unauthorized().json(json!({
-					"cause": "unauthorized",
-					"message": "attempting to access protected endpoint with invalid credentials"
-				}))
-			}
-			ServiceError::Conflict(ref s) => {
-				HttpResponse::Conflict().json(json!({
-					"cause": "conflict",
-					"message": s
-				}))
-			}
+			ServiceError::Unauthorized => HttpResponse::Unauthorized().json(json!({
+				"cause": "unauthorized",
+				"message": "attempting to access protected endpoint with invalid credentials"
+			})),
+			ServiceError::Conflict(ref s) => HttpResponse::Conflict().json(json!({
+				"cause": "conflict",
+				"message": s
+			})),
 		}
 	}
 }
@@ -107,9 +101,6 @@ impl From<DecodeError> for ServiceError {
 
 impl From<std::str::Utf8Error> for ServiceError {
 	fn from(e: std::str::Utf8Error) -> Self {
-		Self::BadRequest(format!(
-			"Invalid UTF-8 byte sequence: {}",
-			e.to_string()
-		))
+		Self::BadRequest(format!("Invalid UTF-8 byte sequence: {}", e.to_string()))
 	}
 }

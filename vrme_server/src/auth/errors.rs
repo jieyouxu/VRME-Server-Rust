@@ -37,22 +37,22 @@ impl From<AuthError> for HttpResponse {
 	fn from(e: AuthError) -> Self {
 		match e {
 			AuthError::MissingCredentials(ref s) => {
-				HttpResponse::Unauthorized()
-					.json(make_error_message("missing-credentials", s))
+				HttpResponse::Unauthorized().json(make_error_message("missing-credentials", s))
 			}
-			AuthError::InvalidFormat(ref s) => HttpResponse::Unauthorized()
-				.json(make_error_message("invalid-format", s)),
-			AuthError::InvalidAuthToken(ref s) => HttpResponse::Unauthorized()
-				.json(make_error_message("invalid-auth-token", s)),
-			AuthError::AuthTokenExpired(ref s) => HttpResponse::Unauthorized()
-				.json(make_error_message("token-expired", s)),
+			AuthError::InvalidFormat(ref s) => {
+				HttpResponse::Unauthorized().json(make_error_message("invalid-format", s))
+			}
+			AuthError::InvalidAuthToken(ref s) => {
+				HttpResponse::Unauthorized().json(make_error_message("invalid-auth-token", s))
+			}
+			AuthError::AuthTokenExpired(ref s) => {
+				HttpResponse::Unauthorized().json(make_error_message("token-expired", s))
+			}
 			AuthError::Banned(ref s) => {
 				HttpResponse::Forbidden().json(make_error_message("banned", s))
 			}
-			AuthError::InternalServerError(ref s) => {
-				HttpResponse::InternalServerError()
-					.json(make_error_message("internal-server-error", s))
-			}
+			AuthError::InternalServerError(ref s) => HttpResponse::InternalServerError()
+				.json(make_error_message("internal-server-error", s)),
 		}
 	}
 }

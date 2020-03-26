@@ -41,10 +41,7 @@ pub async fn identity_validator(
 	let time_since = Utc::now().signed_duration_since(last_used).num_hours();
 
 	if time_since > auth_settings.auth.auth_token_validity_duration as i64 {
-		Err(AuthError::AuthTokenExpired(
-			"`auth_token` has expired; login again".to_string(),
-		)
-		.into())
+		Err(AuthError::AuthTokenExpired("`auth_token` has expired; login again".to_string()).into())
 	} else {
 		Ok(req)
 	}
@@ -58,8 +55,7 @@ fn deserialize_payload(base64_encoded: &str) -> Result<AuthPayload, AuthError> {
 	// `AuthPayload` JSON in bytes.
 	let raw_auth_payload = base64::decode(encoded_auth_payload)?;
 	// We attempt to deserialize the `AuthPayload` as JSON.
-	let auth_payload =
-		serde_json::from_slice::<AuthPayload>(&raw_auth_payload[..])?;
+	let auth_payload = serde_json::from_slice::<AuthPayload>(&raw_auth_payload[..])?;
 
 	debug!("Received `AuthPayload`: {:?}", &auth_payload);
 
@@ -76,11 +72,8 @@ fn validate_auth_payload(
 		));
 	}
 
-	if auth_payload.auth_token.len() != auth_settings.auth_token_length as usize
-	{
-		return Err(AuthError::InvalidFormat(
-			"Invalid AuthPayload".to_string(),
-		));
+	if auth_payload.auth_token.len() != auth_settings.auth_token_length as usize {
+		return Err(AuthError::InvalidFormat("Invalid AuthPayload".to_string()));
 	}
 
 	Ok(())

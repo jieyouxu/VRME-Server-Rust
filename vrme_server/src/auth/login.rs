@@ -49,16 +49,11 @@ pub async fn handle_login(
 		Err(e) => return e.error_response(),
 	};
 
-	let uuid = match check_registration(
-		&client,
-		&login_info.email,
-		&login_info.hashed_password,
-	)
-	.await
-	{
-		Ok(uuid) => uuid,
-		Err(e) => return e.error_response(),
-	};
+	let uuid =
+		match check_registration(&client, &login_info.email, &login_info.hashed_password).await {
+			Ok(uuid) => uuid,
+			Err(e) => return e.error_response(),
+		};
 
 	let auth_token = match upsert_auth_session(&client, &uuid).await {
 		Ok(auth_token) => auth_token,

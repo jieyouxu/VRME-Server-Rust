@@ -26,9 +26,7 @@ impl HashedPassword {
 	///
 	/// - See `PBKDF2_ALGORITHM` and `PBKDF2_ITERATIONS` for the exact algorithm and number of
 	///   iterations used to compute the final hash.
-	pub async fn new(
-		client_hash: &[u8; HASHED_PASSWORD_LEN],
-	) -> Result<Self, ServiceError> {
+	pub async fn new(client_hash: &[u8; HASHED_PASSWORD_LEN]) -> Result<Self, ServiceError> {
 		use rand::RngCore;
 
 		let client_hash = client_hash.clone();

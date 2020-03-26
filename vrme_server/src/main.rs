@@ -39,32 +39,25 @@ async fn main() -> std::io::Result<()> {
 
 	let settings = read_settings();
 
-	let socket_address =
-		net::SocketAddr::new(settings.server.hostname, settings.server.port);
+	let socket_address = net::SocketAddr::new(settings.server.hostname, settings.server.port);
 
 	info!("Server listening on http://{}", &socket_address);
 
 	let connection_pool = create_connection_pool(&settings.database);
 
 	HttpServer::new(move || {
-		let _auth_middleware =
-			HttpAuthentication::bearer(auth::middleware::identity_validator);
+		let _auth_middleware = HttpAuthentication::bearer(auth::middleware::identity_validator);
 
 		let rate_limit_memory_store = MemoryStore::new();
 
 		App::new()
-			.wrap(
-				middleware::DefaultHeaders::new().header("X-Version", VERSION),
-			)
+			.wrap(middleware::DefaultHeaders::new().header("X-Version", VERSION))
 			.wrap(middleware::Compress::default())
 			.wrap(
 				// Rate limiting
-				RateLimiter::new(
-					MemoryStoreActor::from(rate_limit_memory_store.clone())
-						.start(),
-				)
-				.with_interval(std::time::Duration::from_secs(60))
-				.with_max_requests(100),
+				RateLimiter::new(MemoryStoreActor::from(rate_limit_memory_store.clone()).start())
+					.with_interval(std::time::Duration::from_secs(60))
+					.with_max_requests(100),
 			)
 			.wrap(middleware::Logger::default())
 			.data(settings.clone())
@@ -99,9 +92,7 @@ fn read_settings() -> settings::Settings {
 	}
 }
 
-fn create_connection_pool(
-	settings: &settings::DatabaseSettings,
-) -> database::ConnectionPool {
+fn create_connection_pool(settings: &settings::DatabaseSettings) -> database::ConnectionPool {
 	match database::ConnectionPool::from_settings(settings) {
 		Ok(pool) => pool,
 		Err(e) => {
