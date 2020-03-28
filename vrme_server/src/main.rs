@@ -29,8 +29,8 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 ///
 /// # Panics
 ///
-/// - If settings provided are invalid, the server instance will panic with
-///   error messages to indicate erroneous configuration.
+/// - If settings provided are invalid, the server instance will panic with error messages to
+///   indicate erroneous configuration.
 /// - Panics if failed to create a database connection pool.
 ///
 /// # Additional References
@@ -51,6 +51,10 @@ async fn main() -> std::io::Result<()> {
 
 	let connection_pool = create_connection_pool(&settings.database);
 
+	// Curried closure: required data `settings` and `connection_pool` needs to be passed in by
+	// value (by cloning) to prevent moving values.
+	//
+	// In pseduo-Haskell type signature: `create_app :: (Settings, ConnectionPool) -> move () -> App`.
 	let create_app = |settings: Settings, connection_pool: ConnectionPool| {
 		move || {
 			let auth_middleware = HttpAuthentication::bearer(auth::middleware::identity_validator);
