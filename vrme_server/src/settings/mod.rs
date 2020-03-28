@@ -53,6 +53,9 @@ pub struct Settings {
 	pub server: ServerSettings,
 	pub auth: AuthSettings,
 	pub rate_limiting: RateLimitingSettings,
+	/// Optional TLS support. Omitting the `tls` section in the configuration file will only run the
+	/// non-TLS server at the desired port specified in `server.port`.
+	pub tls: Option<TlsSettings>,
 }
 
 /// Database settings.
@@ -170,6 +173,19 @@ fn default_cooldown_duration() -> u64 {
 /// Default max requests per duration is clamped to `100`.
 fn default_max_requests() -> usize {
 	100
+}
+
+/// TLS settings.
+#[derive(Debug, Deserialize, Clone)]
+pub struct TlsSettings {
+	/// Should the server enable TLS support and additionally listen on the given `port`?
+	pub use_tls: bool,
+	/// TLS port – should be different from the non-TLS port.
+	pub port: u16,
+	/// Relative path to the certificate file.
+	pub cert_path: String,
+	/// Relative path to the key file.
+	pub key_path: String,
 }
 
 // For the key `database.username`, the environment variable

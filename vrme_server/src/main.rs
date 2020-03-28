@@ -8,12 +8,18 @@ pub mod settings;
 pub mod types;
 mod welcome;
 
+use crate::database::ConnectionPool;
+use crate::settings::Settings;
 use actix_ratelimit::{MemoryStore, MemoryStoreActor, RateLimiter};
 use actix_web::web;
 use actix_web::HttpServer;
 use actix_web::{middleware, App};
 use actix_web_httpauth::middleware::HttpAuthentication;
 use log::{error, info};
+use rustls::internal::pemfile::{certs, rsa_private_keys};
+use rustls::{NoClientAuth, ServerConfig as TlsConfig};
+use std::fs::File;
+use std::io::BufReader;
 use std::net;
 
 /// Package version.
@@ -39,54 +45,89 @@ async fn main() -> std::io::Result<()> {
 
 	let settings = read_settings();
 
-	let socket_address = net::SocketAddr::new(settings.server.hostname, settings.server.port);
-
+	let socket_address =
+		net::SocketAddr::new(settings.server.hostname.clone(), settings.server.port);
 	info!("Server listening on http://{}", &socket_address);
 
 	let connection_pool = create_connection_pool(&settings.database);
 
-	HttpServer::new(move || {
-		let auth_middleware = HttpAuthentication::bearer(auth::middleware::identity_validator);
+	let create_app = |settings: Settings, connection_pool: ConnectionPool| {
+		move || {
+			let auth_middleware = HttpAuthentication::bearer(auth::middleware::identity_validator);
+			let rate_limit_memory_store = MemoryStore::new();
 
-		let rate_limit_memory_store = MemoryStore::new();
-
-		App::new()
-			.wrap(middleware::DefaultHeaders::new().header("X-Version", VERSION))
-			.wrap(middleware::Compress::default())
-			.wrap(
-				// Rate limiting
-				RateLimiter::new(MemoryStoreActor::from(rate_limit_memory_store.clone()).start())
+			App::new()
+				.wrap(middleware::DefaultHeaders::new().header("X-Version", VERSION))
+				.wrap(middleware::Compress::default())
+				.wrap(
+					// Rate limiting
+					RateLimiter::new(
+						MemoryStoreActor::from(rate_limit_memory_store.clone()).start(),
+					)
 					.with_interval(std::time::Duration::from_secs(
 						settings.rate_limiting.cooldown_duration,
 					))
 					.with_max_requests(settings.rate_limiting.max_requests),
-			)
-			.wrap(middleware::Logger::default())
-			.data(settings.clone())
-			.app_data(
-				web::JsonConfig::default()
-					.limit(settings.server.json_size_limit)
-					.error_handler(json_error_handler::handle_json_error),
-			)
-			.data(connection_pool.clone())
-			.route(
-				"/register",
-				web::post().to(accounts::register::handle_registration),
-			)
-			.route("/login", web::post().to(auth::login::handle_login))
-			.route(
-				"/accounts/uuid",
-				web::get().to(accounts::get_uuid::handle_get_uuid),
-			)
-			.service(
-				web::resource("/account/{uuid}")
-					.wrap(auth_middleware)
-					.route(web::put().to(accounts::update_info::handle_update_user_account)),
-			)
-	})
-	.bind(socket_address)?
-	.run()
-	.await
+				)
+				.wrap(middleware::Logger::default())
+				.data(settings.clone())
+				.app_data(
+					web::JsonConfig::default()
+						.limit(settings.server.json_size_limit)
+						.error_handler(json_error_handler::handle_json_error),
+				)
+				.data(connection_pool.clone())
+				.route(
+					"/register",
+					web::post().to(accounts::register::handle_registration),
+				)
+				.route("/login", web::post().to(auth::login::handle_login))
+				.route(
+					"/accounts/uuid",
+					web::get().to(accounts::get_uuid::handle_get_uuid),
+				)
+				.service(
+					web::resource("/account/{uuid}")
+						.wrap(auth_middleware)
+						.route(web::put().to(accounts::update_info::handle_update_user_account)),
+				)
+		}
+	};
+
+	let server = HttpServer::new(create_app(settings.clone(), connection_pool.clone()))
+		.bind(socket_address)?;
+
+	match &settings.tls {
+		Some(tls_settings) if tls_settings.use_tls => {
+			// Load SSL keys
+			let mut tls_config = TlsConfig::new(NoClientAuth::new());
+			let cert_file = &mut BufReader::new(
+				File::open(&tls_settings.cert_path).expect("`cert.pem` not found"),
+			);
+			let key_file = &mut BufReader::new(
+				File::open(&tls_settings.key_path).expect("`key.pem` not found"),
+			);
+			let cert_chain = certs(cert_file).unwrap();
+			let mut keys = rsa_private_keys(key_file).unwrap();
+			tls_config
+				.set_single_cert(cert_chain, keys.remove(0))
+				.unwrap();
+
+			let tls_socket_address =
+				net::SocketAddr::new(settings.server.hostname.clone(), tls_settings.port);
+
+			info!(
+				"Server (TLS) listening on https://localhost:{}",
+				&tls_socket_address
+			);
+
+			server.bind_rustls(socket_address, tls_config)?.run().await
+		}
+		_ => {
+			info!("Server not using TLS");
+			server.run().await
+		}
+	}
 }
 
 fn read_settings() -> settings::Settings {
