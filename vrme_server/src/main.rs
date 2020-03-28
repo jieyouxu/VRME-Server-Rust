@@ -46,7 +46,7 @@ async fn main() -> std::io::Result<()> {
 	let connection_pool = create_connection_pool(&settings.database);
 
 	HttpServer::new(move || {
-		let _auth_middleware = HttpAuthentication::bearer(auth::middleware::identity_validator);
+		let auth_middleware = HttpAuthentication::bearer(auth::middleware::identity_validator);
 
 		let rate_limit_memory_store = MemoryStore::new();
 
@@ -77,6 +77,11 @@ async fn main() -> std::io::Result<()> {
 			.route(
 				"/accounts/uuid",
 				web::get().to(accounts::get_uuid::handle_get_uuid),
+			)
+			.service(
+				web::resource("/accounts/{uuid}")
+					.wrap(auth_middleware)
+					.route(web::put().to(accounts::update_info::handle_update_user_account)),
 			)
 	})
 	.bind(socket_address)?
