@@ -79,7 +79,7 @@ async fn main() -> std::io::Result<()> {
 				web::get().to(accounts::get_uuid::handle_get_uuid),
 			)
 			.service(
-				web::resource("/accounts/{uuid}")
+				web::resource("/account/{uuid}")
 					.wrap(auth_middleware)
 					.route(web::put().to(accounts::update_info::handle_update_user_account)),
 			)
