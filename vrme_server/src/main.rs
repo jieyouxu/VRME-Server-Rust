@@ -93,21 +93,17 @@ async fn main() -> std::io::Result<()> {
 				)
 				.service(
 					web::scope("/account/{uuid}")
-						.service(web::resource("/").wrap(auth_middleware.clone()).route(
+						.service(web::resource("").wrap(auth_middleware.clone()).route(
 							web::put().to(accounts::update_info::handle_update_user_account),
 						))
 						.service(
-							web::scope("/avatar")
-								.service(
-									web::resource("/").wrap(auth_middleware.clone()).route(
-										web::post().to(avatars::upload::handle_upload_avatar),
-									),
-								)
-								.service(
-									web::resource("/").route(
-										web::get().to(avatars::get_avatar::handle_get_avatar),
-									),
-								),
+							web::resource("/avatar")
+								.route(web::get().to(avatars::get_avatar::handle_get_avatar)),
+						)
+						.service(
+							web::resource("/avatar")
+								.wrap(auth_middleware.clone())
+								.route(web::post().to(avatars::upload::handle_upload_avatar)),
 						),
 				)
 		}
