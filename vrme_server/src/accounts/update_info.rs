@@ -2,7 +2,7 @@
 
 use crate::database::ConnectionPool;
 use crate::service_errors::ServiceError;
-use actix_web::{web, HttpResponse, ResponseError};
+use actix_web::{web, Error, HttpResponse, ResponseError};
 use deadpool_postgres::Client;
 use serde::{Deserialize, Serialize};
 
@@ -57,16 +57,10 @@ pub async fn handle_update_user_account(
 	pool: web::Data<ConnectionPool>,
 	path: web::Path<uuid::Uuid>,
 	req: web::Json<UpdateAccountInformationRequest>,
-) -> HttpResponse {
-	let client = match pool.get().await {
-		Ok(client) => client,
-		Err(e) => return e.error_response(),
-	};
-
-	match update_names(&client, &path, &req.first_name, &req.last_name).await {
-		Ok(()) => HttpResponse::Ok().finish(),
-		Err(e) => e.error_response(),
-	}
+) -> Result<HttpResponse, Error> {
+	let client = pool.get().await?;
+	update_names(&client, &path, &req.first_name, &req.last_name).await?;
+	Ok(HttpResponse::NoContent().finish())
 }
 
 const UPSERT_NAME_QUERY: &str = r#"
