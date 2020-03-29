@@ -1,5 +1,6 @@
 //! Errors and various error conversions.
 
+use actix_web::error::BlockingError;
 use actix_web::{error::ResponseError, HttpResponse};
 use base64::DecodeError;
 use deadpool_postgres::PoolError;
@@ -143,5 +144,11 @@ impl From<JsonError> for ServiceError {
 				Self::BadRequest("Missing required fields (semantic error)".to_string())
 			}
 		}
+	}
+}
+
+impl<E: std::fmt::Debug> From<BlockingError<E>> for ServiceError {
+	fn from(e: BlockingError<E>) -> Self {
+		Self::InternalServerError(format!("Encountered blocking error: {:?}", e.to_string()))
 	}
 }
