@@ -18,7 +18,7 @@ pub struct AuthPayload {
 // Try convert `BearerAuth` into `AuthPayload` by base64-decoding token and deserializing it as the
 // `AuthPayload` json.
 impl AuthPayload {
-	fn from_bearer_auth(auth_info: &BearerAuth) -> Result<AuthPayload, ServiceError> {
+	pub fn from_bearer_auth(auth_info: &BearerAuth) -> Result<AuthPayload, ServiceError> {
 		let auth_info = auth_info.token();
 		let raw = base64::decode(auth_info)?;
 		let auth_payload = serde_json::from_slice(raw.as_slice())?;
