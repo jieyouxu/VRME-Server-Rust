@@ -63,7 +63,7 @@ fn check_content_type_is_png(field: &Field) -> Result<(), ServiceError> {
 		Ok(())
 	} else {
 		Err(ServiceError::UnprocessableEntity(
-			"`Content-Disposition` must be specified".to_string(),
+			"`Content-Type` must be specified".to_string(),
 		))
 	}
 }
