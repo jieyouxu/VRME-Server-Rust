@@ -18,9 +18,17 @@ use uuid::Uuid;
 ///
 /// The endpoint is protected.
 ///
-/// The client should upload the image in `PNG` format – this should probably be done using a HTML
+/// The client should upload the image in PNG format – this should probably be done using a HTML
 /// form which has a file upload entry, so the client can send the POST payload as a
 /// `multipart/form-data` where the server assumes the first form data is the desired avatar.
+///
+/// ## Caveats
+///
+/// We do not perform any validation on whether the supplied binary data is in fact valid PNG – it
+/// is the client's responsibility to make sure that a valid PNG is sent as the avatar.
+///
+/// If an invalid avatar is uploaded, then anyone who calls `GET /account/{uuid}/avatar` will get
+/// back the invalid avatar.
 ///
 /// ## References
 ///
@@ -42,8 +50,8 @@ pub async fn handle_upload_avatar(
 	// the desired PNG avatar file itself.
 	if let Ok(Some(mut field)) = payload.try_next().await {
 		check_content_type_is_png(&field)?;
-		// TODO: validate image as PNG
-
+		// We don't validate if the raw binary payload is in fact valid PNG. If the client uploads
+		// an invalid PNG, then upon request the client will receive the same invalid PNG.
 		let mut file = create_avatar_file(&auth_payload.uuid).await?;
 
 		// TODO: clamp the size of the PNG upload (restrict file size)
