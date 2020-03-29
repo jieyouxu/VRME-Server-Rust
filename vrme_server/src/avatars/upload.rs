@@ -42,8 +42,11 @@ pub async fn handle_upload_avatar(
 	// the desired PNG avatar file itself.
 	if let Ok(Some(mut field)) = payload.try_next().await {
 		check_content_type_is_png(&field)?;
+		// TODO: validate image as PNG
 
 		let mut file = create_avatar_file(&auth_payload.uuid).await?;
+
+		// TODO: clamp the size of the PNG upload (restrict file size)
 		while let Some(chunk) = field.next().await {
 			let data = chunk?;
 			file = write_to_avatar_file(file, data).await?;
