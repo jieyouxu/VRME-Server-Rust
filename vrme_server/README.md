@@ -138,3 +138,11 @@ files, which in turn take precedence over the default shared configuration
 file.
 
 See the `src/config` module for the most accurate configuration options.
+
+## Data
+
+The server stores the uploaded presentation files and uploaded avatars under the
+`data/` directory:
+
+1. Presentation files: `data/presentations/`.
+2. Avatars: `data/avatars/`.
