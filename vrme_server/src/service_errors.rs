@@ -7,6 +7,7 @@ use derive_more::Display;
 use rand::Error as RandError;
 use serde::Serialize;
 use serde_json::json;
+use serde_json::{error::Category as JsonErrorCategory, Error as JsonError};
 use std::convert::{From, Into};
 use tokio_pg_mapper::Error as TPGMError;
 use tokio_postgres::error::Error as TPGError;
@@ -28,6 +29,12 @@ pub enum ServiceError {
 
 	#[display(fmt = "conflict: {}", "_0")]
 	Conflict(String),
+
+	#[display(fmt = "unprocessable entity: {}", "_0")]
+	UnprocessableEntity(String),
+
+	#[display(fmt = "unsupported media type: {}", "_0")]
+	UnsupportedMediaType(String),
 }
 
 impl std::error::Error for ServiceError {}
@@ -83,6 +90,18 @@ impl ResponseError for ServiceError {
 				"cause": "conflict",
 				"message": s
 			})),
+			ServiceError::UnprocessableEntity(ref s) => {
+				HttpResponse::UnprocessableEntity().json(json!({
+					"cause": "unprocessable-entity",
+					"message": s
+				}))
+			}
+			ServiceError::UnsupportedMediaType(ref s) => {
+				HttpResponse::UnsupportedMediaType().json(json!({
+					"cause": "unsupported-media-type",
+					"message": s
+				}))
+			}
 		}
 	}
 }
@@ -108,5 +127,21 @@ impl From<std::str::Utf8Error> for ServiceError {
 impl From<ring::error::Unspecified> for ServiceError {
 	fn from(_: ring::error::Unspecified) -> Self {
 		Self::InternalServerError("Error encountered when performing crypto tasks".to_string())
+	}
+}
+
+impl From<JsonError> for ServiceError {
+	fn from(json_error: JsonError) -> Self {
+		match &json_error.classify() {
+			JsonErrorCategory::Io => Self::InternalServerError(
+				"Encountered I/O error when trying to process JSON".to_string(),
+			),
+			JsonErrorCategory::Syntax | JsonErrorCategory::Eof => {
+				Self::UnprocessableEntity("Invalid JSON (syntax error)".to_string())
+			}
+			JsonErrorCategory::Data => {
+				Self::BadRequest("Missing required fields (semantic error)".to_string())
+			}
+		}
 	}
 }
