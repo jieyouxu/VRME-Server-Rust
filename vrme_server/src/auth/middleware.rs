@@ -3,7 +3,7 @@
 use crate::auth::auth_payload::AuthPayload;
 use crate::auth::errors::AuthError;
 use crate::database::ConnectionPool;
-use crate::settings::{AuthSettings, Settings};
+use crate::settings::Settings;
 use actix_web::dev::ServiceRequest;
 use actix_web::Error as ActixError;
 use actix_web_httpauth::extractors::bearer::BearerAuth;
@@ -28,55 +28,22 @@ pub async fn identity_validator(
 	req: ServiceRequest,
 	credentials: BearerAuth,
 ) -> Result<ServiceRequest, ActixError> {
-	let auth_settings = req.app_data::<Settings>().unwrap();
-	let auth_payload = deserialize_payload(credentials.token())?;
+	let settings = req.app_data::<Settings>().unwrap();
+	let auth_payload = AuthPayload::from_bearer_auth(&credentials)?;
 
-	validate_auth_payload(&auth_settings.get_ref().auth, &auth_payload)?;
+	debug!("Received `auth_payload` {:#?}", &auth_payload);
 
 	let pool = req.app_data::<ConnectionPool>().unwrap();
 	let client = pool.get().await?;
 
 	let last_used = find_auth_session(&client, &auth_payload).await?;
-
 	let time_since = Utc::now().signed_duration_since(last_used).num_hours();
 
-	if time_since > auth_settings.auth.auth_token_validity_duration as i64 {
+	if time_since > settings.auth.auth_token_validity_duration as i64 {
 		Err(AuthError::AuthTokenExpired("`auth_token` has expired; login again".to_string()).into())
 	} else {
 		Ok(req)
 	}
-}
-
-fn deserialize_payload(base64_encoded: &str) -> Result<AuthPayload, AuthError> {
-	// We get the `AuthPayload` contained within the `Authorization: Bearer <token>` header, which
-	// is required to be base64-encoded.
-	let encoded_auth_payload = base64_encoded;
-	// We decode the base64-encoded `AuthPayload` to get the raw `AuthPayload` (i.e. the
-	// `AuthPayload` JSON in bytes.
-	let raw_auth_payload = base64::decode(encoded_auth_payload)?;
-	// We attempt to deserialize the `AuthPayload` as JSON.
-	let auth_payload = serde_json::from_slice::<AuthPayload>(&raw_auth_payload[..])?;
-
-	debug!("Received `AuthPayload`: {:?}", &auth_payload);
-
-	Ok(auth_payload)
-}
-
-fn validate_auth_payload(
-	auth_settings: &AuthSettings,
-	auth_payload: &AuthPayload,
-) -> Result<(), AuthError> {
-	if auth_payload.auth_token.trim().is_empty() {
-		return Err(AuthError::InvalidFormat(
-			"`auth_token` cannot be empty".to_string(),
-		));
-	}
-
-	if auth_payload.auth_token.len() != auth_settings.auth_token_length as usize {
-		return Err(AuthError::InvalidFormat("Invalid AuthPayload".to_string()));
-	}
-
-	Ok(())
 }
 
 const FIND_AUTH_SESSION_QUERY: &str = r#"
