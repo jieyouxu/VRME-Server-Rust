@@ -1,5 +1,6 @@
 pub mod accounts;
 pub mod auth;
+pub mod avatars;
 pub mod database;
 mod json_error_handler;
 pub mod logging;
@@ -91,9 +92,17 @@ async fn main() -> std::io::Result<()> {
 					web::get().to(accounts::get_uuid::handle_get_uuid),
 				)
 				.service(
-					web::resource("/account/{uuid}")
-						.wrap(auth_middleware)
-						.route(web::put().to(accounts::update_info::handle_update_user_account)),
+					web::scope("/account/{uuid}")
+						.service(web::resource("/").wrap(auth_middleware.clone()).route(
+							web::put().to(accounts::update_info::handle_update_user_account),
+						))
+						.service(
+							web::scope("/avatar").service(
+								web::resource("/")
+									.wrap(auth_middleware.clone())
+									.route(web::post().to(avatars::upload::handle_upload_avatar)),
+							),
+						),
 				)
 		}
 	};
