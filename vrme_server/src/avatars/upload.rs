@@ -54,7 +54,6 @@ pub async fn handle_upload_avatar(
 		// an invalid PNG, then upon request the client will receive the same invalid PNG.
 		let mut file = create_avatar_file(&auth_payload.uuid).await?;
 
-		// TODO: clamp the size of the PNG upload (restrict file size)
 		while let Some(chunk) = field.next().await {
 			let data = chunk?;
 			file = write_to_avatar_file(file, data).await?;
@@ -91,7 +90,33 @@ async fn create_avatar_file(uuid: &Uuid) -> Result<File, ServiceError> {
 }
 
 async fn write_to_avatar_file(mut file: File, data: Bytes) -> Result<File, ServiceError> {
-	web::block(move || file.write_all(&data).map(|_| file))
-		.await
-		.map_err(|e| e.into())
+	web::block(move || {
+		let expected_file_size = file.metadata()?.len() + data.len() as u64;
+		if expected_file_size > AVATAR_SIZE_LIMIT {
+			Err(ServiceError::UnprocessableEntity(
+				"File size too large".to_string(),
+			))
+		} else {
+			file.write_all(&data).map(|_| file).map_err(|e| e.into())
+		}
+	})
+	.await
+	.map_err(|e| e.into())
 }
+
+/// Upper limit on avatar file size in bytes.
+///
+/// - Assume the max dimensions of the PNG file is `512 x 512` (pixels).
+/// - Assume the PNG is uncompressed.
+/// - Assume the PNG is RGBA, each channel requiring `8` bits, meaning each pixel requires
+///   `4 * 8 = 32` bits to represent (`= 4` bytes).
+///
+/// Approximate max size limit in bytes is calculated by (only raw payload, no metadata or header
+/// information):
+///
+/// ```
+/// 512 * 512 * 4 / 4 = 1024 bytes
+/// ```
+///
+/// We give some allowance to this to allow some metadata and header information.
+pub const AVATAR_SIZE_LIMIT: u64 = 1280;
