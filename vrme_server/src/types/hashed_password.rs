@@ -52,12 +52,7 @@ impl HashedPassword {
 			})
 		})
 		.await
-		.map_err(|e| match e {
-			BlockingError::Error(e) => e,
-			BlockingError::Canceled => ServiceError::InternalServerError(
-				"Blocking operation unexpectedly cancelled".to_string(),
-			),
-		})
+		.map_err(|e| e.into())
 	}
 }
 
