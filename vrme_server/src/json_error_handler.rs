@@ -4,7 +4,7 @@ use actix_web::{HttpRequest, HttpResponse};
 /// JSON error handler.
 ///
 /// Take from: https://github.com/actix/examples/blob/master/json_decode_error/src/main.rs.
-pub fn json_error_handler(cause: error::JsonPayloadError, _req: &HttpRequest) -> error::Error {
+pub fn handle_json_error(cause: error::JsonPayloadError, _req: &HttpRequest) -> error::Error {
 	use actix_web::error::JsonPayloadError;
 
 	let detail = cause.to_string();
