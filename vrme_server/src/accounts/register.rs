@@ -12,7 +12,8 @@ use crate::database::ConnectionPool;
 use crate::service_errors::ServiceError;
 use crate::types::client_hashed_password::ClientHashedPassword;
 use crate::types::hashed_password::HashedPassword;
-use actix_web::{web, HttpResponse, ResponseError};
+use actix_web::Error;
+use actix_web::{web, HttpResponse};
 use deadpool_postgres::Client;
 use log::debug;
 use serde::{Deserialize, Serialize};
@@ -65,104 +66,64 @@ pub struct RegistrationRequest {
 pub async fn handle_registration(
 	request_info: web::Json<RegistrationRequest>,
 	pool: web::Data<ConnectionPool>,
-) -> HttpResponse {
+) -> Result<HttpResponse, Error> {
 	debug!("Request:\n {:?}", &request_info);
-
-	if let Err(e) = validate_request_payload(request_info.clone()).await {
-		debug!("{}", &e);
-		return e.error_response();
-	}
+	validate_request_payload(request_info.clone()).await?;
 
 	// We first need to base64-decode the client password hash.
-	let client_password_hash = match ClientHashedPassword::new(&request_info.hashed_password) {
-		Ok(hash) => hash,
-		Err(e) => return e.error_response(),
-	};
-
-	let client_password_hash = match client_password_hash.decode().await {
-		Ok(hash) => hash,
-		Err(e) => return e.error_response(),
-	};
+	let client_password_hash = ClientHashedPassword::new(&request_info.hashed_password)?;
+	let client_password_hash = client_password_hash.decode().await?;
 
 	// We then need to compute the `PasswordHashInfo` to store them into the database.
-	let password_hash_info = match HashedPassword::new(&client_password_hash).await {
-		Ok(info) => info,
-		Err(e) => {
-			debug!("{}", &e);
-			return ServiceError::InternalServerError(e.to_string()).error_response();
-		}
-	};
+	let password_hash_info = HashedPassword::new(&client_password_hash).await?;
 
-	let client = match pool.get().await {
-		Ok(client) => client,
-		Err(e) => {
-			debug!("{}", &e);
-			return ServiceError::InternalServerError(e.to_string()).error_response();
-		}
-	};
-
+	let client = pool.get().await?;
 	let (user_id, email) =
-		match create_account_if_not_exists(&client, &request_info, &password_hash_info).await {
-			Ok((user_id, email)) => (user_id, email),
-			Err(e) => {
-				debug!("{}", &e);
-				return e.error_response();
-			}
-		};
+		create_account_if_not_exists(&client, &request_info, &password_hash_info).await?;
 
-	make_success_response(&user_id, &email)
+	Ok(make_success_response(&user_id, &email))
 }
 
 async fn validate_request_payload(payload: RegistrationRequest) -> Result<(), ServiceError> {
-	web::block(move || {
+	let task = move || {
 		validate_name_length(&payload.first_name, "first_name")?;
 		validate_name_length(&payload.last_name, "last_name")?;
 		validate_email(&payload.email)?;
 		Ok::<(), ServiceError>(())
-	})
-	.await
-	.map_err(|e| {
-		if let actix_web::error::BlockingError::Error(err) = e {
-			err
-		} else {
-			ServiceError::InternalServerError(e.to_string())
-		}
-	})
+	};
+
+	web::block(task).await.map_err(|e| e.into())
 }
 
 fn validate_name_length(name: &str, name_kind: &str) -> Result<(), ServiceError> {
 	if name.is_empty() {
-		return Err(ServiceError::BadRequest(format!(
+		Err(ServiceError::BadRequest(format!(
 			"`{}` canot be empty",
 			name_kind
-		)));
-	}
-
-	if name.len() > 100 {
-		return Err(ServiceError::BadRequest(format!(
+		)))
+	} else if name.len() > 100 {
+		Err(ServiceError::BadRequest(format!(
 			"`{}` is too long",
 			name_kind
-		)));
+		)))
+	} else {
+		Ok(())
 	}
-
-	Ok(())
 }
 
 // Only checks that the email has a minimum length of 3 characters and must include `@` character.
 fn validate_email(email: &str) -> Result<(), ServiceError> {
 	if email.len() < 3 {
-		return Err(ServiceError::BadRequest(
+		Err(ServiceError::BadRequest(
 			"Invalid email address: too short".to_string(),
-		));
-	}
-
-	if !email.contains('@') {
-		return Err(ServiceError::BadRequest(
+		))
+	} else if !email.contains('@') {
+		Err(ServiceError::BadRequest(
 			"Invalid email address".to_string(),
-		));
+		))
+	} else {
+		Ok(())
 	}
-
-	Ok(())
 }
 
 const CREATE_USER_QUERY: &str = r#"
@@ -216,8 +177,7 @@ async fn create_account_if_not_exists(
 				&date,
 			],
 		)
-		.await
-		.map_err(|e| ServiceError::InternalServerError(e.to_string()))?;
+		.await?;
 
 	if rows.is_empty() {
 		// We did not successfully create a new account with the provided email address. An account
