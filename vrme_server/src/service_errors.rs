@@ -152,3 +152,9 @@ impl<E: std::fmt::Debug> From<BlockingError<E>> for ServiceError {
 		Self::InternalServerError(format!("Encountered blocking error: {:?}", e.to_string()))
 	}
 }
+
+impl From<std::io::Error> for ServiceError {
+	fn from(e: std::io::Error) -> Self {
+		Self::InternalServerError(format!("I/O error: {}", e.to_string()))
+	}
+}
