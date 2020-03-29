@@ -1,3 +1,7 @@
+### Node.js, Yarn ###
+
+node_modules/
+
 ### Rust ###
 
 # Build output
