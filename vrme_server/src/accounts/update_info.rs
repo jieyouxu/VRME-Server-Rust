@@ -2,7 +2,7 @@
 
 use crate::database::ConnectionPool;
 use crate::service_errors::ServiceError;
-use actix_web::{web, Error, HttpResponse, ResponseError};
+use actix_web::{web, Error, HttpResponse};
 use deadpool_postgres::Client;
 use serde::{Deserialize, Serialize};
 
