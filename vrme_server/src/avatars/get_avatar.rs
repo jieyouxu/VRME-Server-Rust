@@ -22,16 +22,21 @@ pub async fn handle_get_avatar(uuid: web::Path<Uuid>) -> Result<afs::NamedFile, 
 }
 
 async fn get_avatar_or_default(uuid: &Uuid) -> Result<afs::NamedFile, ServiceError> {
-	let path = build_path(&uuid);
-	let path = std::path::Path::new(&path);
+	let raw_path = build_path(&uuid);
+	let path = std::path::PathBuf::from(&raw_path);
 
-	let file = if path.exists() {
-		afs::NamedFile::open(&path)?
-	} else {
-		afs::NamedFile::open("data/avatars/default.png")?
-	};
+	// We delegate the responsibility of reading a PNG file to a thread pool to avoid blocking.
+	web::block(move || -> Result<afs::NamedFile, ServiceError> {
+		let file = if path.exists() {
+			afs::NamedFile::open(&path)?
+		} else {
+			afs::NamedFile::open("data/avatars/default.png")?
+		};
 
-	Ok(file.use_last_modified(true).use_etag(true))
+		Ok(file.use_last_modified(true).use_etag(true))
+	})
+	.await
+	.map_err(|e| e.into())
 }
 
 fn build_path(uuid: &Uuid) -> String {
