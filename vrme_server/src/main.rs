@@ -109,6 +109,13 @@ async fn main() -> std::io::Result<()> {
 							web::resource("/avatar")
 								.wrap(auth_middleware.clone())
 								.route(web::post().to(avatars::upload::handle_upload_avatar)),
+						)
+						.service(
+							web::resource("/avatar")
+								.wrap(auth_middleware.clone())
+								.route(
+									web::delete().to(avatars::delete_avatar::handle_delete_avatar),
+								),
 						),
 				)
 		}
