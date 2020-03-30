@@ -1,7 +1,6 @@
 //! Hashed password newtype.
 
 use crate::service_errors::ServiceError;
-use actix_web::error::BlockingError;
 use actix_web::web;
 use rand;
 use ring::pbkdf2;
