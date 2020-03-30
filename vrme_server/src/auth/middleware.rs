@@ -3,6 +3,7 @@
 use crate::auth::auth_payload::AuthPayload;
 use crate::auth::errors::AuthError;
 use crate::database::ConnectionPool;
+use crate::service_errors::ServiceError;
 use crate::settings::Settings;
 use actix_web::dev::ServiceRequest;
 use actix_web::Error as ActixError;
@@ -36,7 +37,15 @@ pub async fn identity_validator(
 	let pool = req.app_data::<ConnectionPool>().unwrap();
 	let client = pool.get().await?;
 
-	let last_used = find_auth_session(&client, &auth_payload).await?;
+	let last_used = match find_auth_session(&client, &auth_payload).await {
+		Ok(last_used) => last_used,
+		Err(_) => {
+			return Err(ServiceError::Unauthorized(
+				"No matching auth session found with the given `uuid`".to_string(),
+			)
+			.into())
+		}
+	};
 	let time_since = Utc::now().signed_duration_since(last_used).num_hours();
 
 	if time_since > settings.auth.auth_token_validity_duration as i64 {
@@ -53,8 +62,8 @@ const FIND_AUTH_SESSION_QUERY: &str = r#"
         last_used
     FROM auth_sessions
     WHERE
-        user_id = $1::UUID,
-        auth_token = $2::VARCHAR(32);
+        user_id = $1::UUID AND
+        auth_token = $2::VARCHAR(44);
 "#;
 
 async fn find_auth_session(

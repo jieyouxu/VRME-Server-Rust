@@ -23,7 +23,7 @@ pub async fn handle_logout(
 }
 
 const LOGOUT_QUERY: &str = r#"
-    DELETE FROM auth_session
+    DELETE FROM auth_sessions
     WHERE user_id = $1::UUID;
 "#;
 

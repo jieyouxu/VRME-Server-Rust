@@ -1,6 +1,6 @@
 //! Handles user login and `auth_token` issuing.
 
-use crate::auth::auth_token::{AuthToken, AUTH_TOKEN_LEN};
+use crate::auth::auth_token::AuthToken;
 use crate::database::ConnectionPool;
 use crate::service_errors::ServiceError;
 use crate::types::client_hashed_password::ClientHashedPassword;
@@ -63,9 +63,6 @@ pub async fn handle_login(
 		Err(e) => return e.error_response(),
 	};
 
-	// We need to base64-encode the raw `auth_token` bytes.
-	let auth_token = base64::encode(auth_token);
-
 	make_success_response(&uuid, &auth_token)
 }
 
@@ -126,7 +123,7 @@ const UPSERT_AUTH_SESSION_QUERY: &str = r#"
     INSERT INTO auth_sessions
         (user_id, auth_token, last_used)
     VALUES
-        ($1::UUID, $2::BYTEA, $3::TIMESTAMP)
+        ($1::UUID, $2::VARCHAR(44), $3::TIMESTAMP)
     ON CONFLICT
         (user_id)
     DO UPDATE SET
@@ -140,18 +137,15 @@ const UPSERT_AUTH_SESSION_QUERY: &str = r#"
 "#;
 
 /// Either creates a new `auth_session`, or refreshes an existing session with a new `auth_token`.
-async fn upsert_auth_session(
-	client: &Client,
-	user_id: &Uuid,
-) -> Result<[u8; AUTH_TOKEN_LEN], ServiceError> {
+async fn upsert_auth_session(client: &Client, user_id: &Uuid) -> Result<String, ServiceError> {
 	let auth_token = AuthToken::new().await?.token();
-	let auth_token_ref = &auth_token[..AUTH_TOKEN_LEN];
+	let auth_token = base64::encode(&auth_token);
 	let last_used = chrono::Utc::now().naive_utc();
 
 	let statement = client.prepare(UPSERT_AUTH_SESSION_QUERY).await.unwrap();
 
 	let rows = client
-		.query(&statement, &[user_id, &auth_token_ref, &last_used])
+		.query(&statement, &[user_id, &auth_token, &last_used])
 		.await?;
 
 	if rows.is_empty() {
