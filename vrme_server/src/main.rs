@@ -87,6 +87,11 @@ async fn main() -> std::io::Result<()> {
 					web::post().to(accounts::register::handle_registration),
 				)
 				.route("/login", web::post().to(auth::login::handle_login))
+				.service(
+					web::resource("/logout")
+						.wrap(auth_middleware.clone())
+						.route(web::post().to(auth::logout::handle_logout)),
+				)
 				.route(
 					"/accounts/uuid",
 					web::get().to(accounts::get_uuid::handle_get_uuid),
