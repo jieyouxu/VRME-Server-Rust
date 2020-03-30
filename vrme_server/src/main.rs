@@ -86,6 +86,11 @@ async fn main() -> std::io::Result<()> {
 					"/register",
 					web::post().to(accounts::register::handle_registration),
 				)
+				.service(
+					web::resource("/account")
+						.wrap(auth_middleware.clone())
+						.route(web::delete().to(accounts::delete::handle_delete_account)),
+				)
 				.route("/login", web::post().to(auth::login::handle_login))
 				.service(
 					web::resource("/logout")
