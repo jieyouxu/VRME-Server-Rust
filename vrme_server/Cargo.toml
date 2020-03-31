@@ -9,29 +9,47 @@ name = "vrme_server"
 path = "src/main.rs"
 
 [dependencies]
+
+# Logging
 log = "0.4.8"
 env_logger = "0.7.1"
+
+# Server
 actix-web = { version = "2.0.0", features = ["rustls"] }
 actix-rt = "1.0.0"
-serde = { version = "1.0.105", features = ["derive"] }
-config = { version = "0.10.1", features = ["json", "yaml", "toml"] }
-toml = "0.5.6"
 actix-files = "0.2.1"
-envy = "0.4.1"
-uuid = { version = "0.8.1", features = ["serde", "v4"] }
+actix-web-httpauth = "0.4.1"
+actix-ratelimit = "0.2.1"
+
+# Serialization/Deserialization, Encoding, Configuration
+serde = { version = "1.0.105", features = ["derive"] }
+toml = "0.5.6"
 serde_json = "1.0.50"
+config = { version = "0.10.1", features = ["json", "yaml", "toml"] }
+envy = "0.4.1"
 base64 = "0.12.0"
+actix-multipart = "0.2.0"
+
+# Uuid
+uuid = { version = "0.8.1", features = ["serde", "v4"] }
+
+# Time
 chrono = { version = "0.4.11", features = ["serde"] }
+
+# Cryptography/Random Generation
 ring = "0.16.12"
 rand = "0.7.3"
+rustls = "0.16.0"
+
+# Util
 derive_more = { version = "0.99.5", features = ["from", "display"] }
+bytes = "0.5.4"
+
+# Database
 deadpool-postgres = "0.5.5"
 tokio-pg-mapper = "0.1.7"
 tokio-pg-mapper-derive = "0.1.5"
 tokio-postgres = { version = "0.5.3", features = ["with-chrono-0_4", "with-serde_json-1", "with-uuid-0_8"] }
-actix-web-httpauth = "0.4.1"
-actix-ratelimit = "0.2.1"
-rustls = "0.16.0"
+
+# Async
 futures = "0.3.4"
-actix-multipart = "0.2.0"
-bytes = "0.5.4"
