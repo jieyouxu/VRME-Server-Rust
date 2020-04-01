@@ -39,6 +39,8 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// Built with [actix/actix-web](https://github.com/actix/actix-web).
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
+	color_backtrace::install();
+
 	logging::init();
 	welcome::welcome()?;
 

@@ -44,6 +44,7 @@ rustls = "0.16.0"
 # Util
 derive_more = { version = "0.99.5", features = ["from", "display"] }
 bytes = "0.5.4"
+color-backtrace = { version = "0.3.0", default-features = false }
 
 # Database
 deadpool-postgres = "0.5.5"
