@@ -43,6 +43,7 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
 	color_backtrace::install();
+	human_panic::setup_panic!();
 
 	logging::init();
 	welcome::welcome()?;
