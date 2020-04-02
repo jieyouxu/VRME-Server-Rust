@@ -1,6 +1,6 @@
 //! Authentication errors.
 
-use crate::database::DatabaseError;
+use crate::database::error::DatabaseError;
 use actix_web::{HttpResponse, ResponseError};
 use derive_more::Display;
 use serde_json::json;

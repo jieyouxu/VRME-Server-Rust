@@ -56,6 +56,8 @@ pub struct Settings {
 	/// Optional TLS support. Omitting the `tls` section in the configuration file will only run the
 	/// non-TLS server at the desired port specified in `server.port`.
 	pub tls: Option<TlsSettings>,
+	/// We need redis for in-memory meeting session store.
+	pub redis: RedisSettings,
 }
 
 /// Database settings.
@@ -186,6 +188,24 @@ pub struct TlsSettings {
 	pub cert_path: String,
 	/// Relative path to the key file.
 	pub key_path: String,
+}
+
+/// Redis settings.
+#[derive(Debug, Deserialize, Clone)]
+pub struct RedisSettings {
+	/// Hostname of the redis server.
+	pub hostname: IpAddr,
+	/// Port of the redis server.
+	pub port: u16,
+	/// Redis server account password.
+	pub password: String,
+	/// Redis database number.
+	#[serde(default = "default_redis_database_number")]
+	pub database_number: u32,
+}
+
+fn default_redis_database_number() -> u32 {
+	0
 }
 
 // For the key `database.username`, the environment variable

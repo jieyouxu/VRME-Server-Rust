@@ -35,3 +35,25 @@ auth_token_validity_duration = 30
 cooldown_duration = 60
 # How many requests for each unique IP address are allowed per duration?
 max_requests = 100
+
+[tls]
+# Should we use TLS to secure connections between the server and clients?
+use_tls = false
+# The port that TLS connections should be listened on. This *must* be different
+# from the port for non-TLS connections as we won't be able to listen to an
+# already occupied socket.
+port = 8081
+# TLS certificate file path.
+cert_path = "./tls/cert_file.pem"
+# TLS key file path.
+key_path = "./tls/key_file.key"
+
+[redis]
+# Hostname of redis server.
+hostname = "127.0.0.1"
+# Port of redis server
+port = 6379
+# Redis server account password
+password = ""
+# Redis server database number
+database_number = 0
