@@ -2,7 +2,7 @@
 //! `{uuid}`.
 
 use crate::auth::auth_payload::AuthPayload;
-use crate::database::ConnectionPool;
+use crate::database::postgresql::ConnectionPool;
 use crate::service_errors::ServiceError;
 use actix_web::web;
 use actix_web::{Error, HttpResponse};

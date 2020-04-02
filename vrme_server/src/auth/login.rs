@@ -1,7 +1,7 @@
 //! Handles user login and `auth_token` issuing.
 
 use crate::auth::auth_token::AuthToken;
-use crate::database::ConnectionPool;
+use crate::database::postgresql::ConnectionPool;
 use crate::service_errors::ServiceError;
 use crate::types::client_hashed_password::ClientHashedPassword;
 use crate::types::hashed_password::{PBKDF2_ALGORITHM, PBKDF2_ITERATIONS};
