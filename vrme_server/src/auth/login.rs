@@ -1,7 +1,7 @@
 //! Handles user login and `auth_token` issuing.
 
 use crate::auth::auth_token::AuthToken;
-use crate::database::postgresql::ConnectionPool;
+use crate::database::postgresql::PersistentConnectionPool;
 use crate::service_errors::ServiceError;
 use crate::types::client_hashed_password::ClientHashedPassword;
 use crate::types::hashed_password::{PBKDF2_ALGORITHM, PBKDF2_ITERATIONS};
@@ -44,7 +44,7 @@ pub struct LoginInfo {
 /// A successful login will cause the `auth_token` used for the login to be refreshed in
 /// terms of its `last_used` datetime.
 pub async fn handle_login(
-	pool: web::Data<ConnectionPool>,
+	pool: web::Data<PersistentConnectionPool>,
 	login_info: web::Json<LoginInfo>,
 ) -> HttpResponse {
 	let client = match pool.get().await {

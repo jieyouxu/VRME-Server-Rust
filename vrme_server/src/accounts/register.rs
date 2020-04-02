@@ -8,7 +8,7 @@
 //!
 //! - [SHA-256](https://tools.ietf.org/html/rfc4634)
 
-use crate::database::postgresql::ConnectionPool;
+use crate::database::postgresql::PersistentConnectionPool;
 use crate::service_errors::ServiceError;
 use crate::types::client_hashed_password::ClientHashedPassword;
 use crate::types::hashed_password::HashedPassword;
@@ -65,7 +65,7 @@ pub struct RegistrationRequest {
 /// Refer to the API endpoint documentation for possible error responses.
 pub async fn handle_registration(
 	request_info: web::Json<RegistrationRequest>,
-	pool: web::Data<ConnectionPool>,
+	pool: web::Data<PersistentConnectionPool>,
 ) -> Result<HttpResponse, Error> {
 	debug!("Request:\n {:?}", &request_info);
 	validate_request_payload(request_info.clone()).await?;

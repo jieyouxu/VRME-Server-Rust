@@ -1,6 +1,7 @@
-//! Database and connection pool setup and configuration.
+//! Persistent database and connection pool setup and configuration.
 
 use crate::settings::DatabaseSettings;
+
 use actix_web::ResponseError;
 use deadpool_postgres::{config, Client, Pool, PoolError};
 use derive_more::{Display, From};
@@ -8,15 +9,15 @@ use log::{debug, error, info};
 use std::convert::From;
 use tokio_postgres::NoTls;
 
-/// Database connection pool.
+/// Persistent database connection pool.
 #[derive(From, Clone)]
-pub struct ConnectionPool(Pool);
+pub struct PersistentConnectionPool(Pool);
 
-impl ConnectionPool {
+impl PersistentConnectionPool {
 	/// Initialize a PostgreSQL database pool from supplied `database_settings`.
 	pub fn from_settings(
 		database_settings: &DatabaseSettings,
-	) -> Result<ConnectionPool, DatabaseError> {
+	) -> Result<PersistentConnectionPool, DatabaseError> {
 		let database_settings = database_settings.clone();
 
 		let postgres_config = config::Config {
@@ -39,7 +40,7 @@ impl ConnectionPool {
 		match pool {
 			Ok(pool) => {
 				info!("Successfully initialized database connection pool");
-				Ok(ConnectionPool(pool))
+				Ok(PersistentConnectionPool(pool))
 			}
 			Err(e) => {
 				error!("Successfully initialized database connection pool");

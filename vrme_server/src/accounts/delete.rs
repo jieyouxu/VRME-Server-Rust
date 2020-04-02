@@ -1,7 +1,7 @@
 //! Deletes user account.
 
 use crate::auth::auth_payload::AuthPayload;
-use crate::database::postgresql::ConnectionPool;
+use crate::database::postgresql::PersistentConnectionPool;
 use crate::service_errors::ServiceError;
 use actix_web::web;
 use actix_web::{Error, HttpResponse};
@@ -14,7 +14,7 @@ use uuid::Uuid;
 /// Handler for deleting a user account. This is a destructive operation and the user account cannot
 /// be recovered.
 pub async fn handle_delete_account(
-	pool: web::Data<ConnectionPool>,
+	pool: web::Data<PersistentConnectionPool>,
 	auth: BearerAuth,
 ) -> Result<HttpResponse, Error> {
 	let auth_payload = AuthPayload::from_bearer_auth(&auth)?;
