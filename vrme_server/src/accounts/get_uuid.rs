@@ -1,6 +1,6 @@
 //! Get a user's `uuid` by providing the user's email.
 
-use crate::database::ConnectionPool;
+use crate::database::postgresql::ConnectionPool;
 use crate::service_errors::ServiceError;
 use actix_web::{web, Error, HttpResponse};
 use deadpool_postgres::Client;

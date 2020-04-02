@@ -2,7 +2,7 @@
 
 use crate::auth::auth_payload::AuthPayload;
 use crate::auth::errors::AuthError;
-use crate::database::ConnectionPool;
+use crate::database::postgresql::ConnectionPool;
 use crate::service_errors::ServiceError;
 use crate::settings::Settings;
 use actix_web::dev::ServiceRequest;

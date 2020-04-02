@@ -8,7 +8,7 @@
 //!
 //! - [SHA-256](https://tools.ietf.org/html/rfc4634)
 
-use crate::database::ConnectionPool;
+use crate::database::postgresql::ConnectionPool;
 use crate::service_errors::ServiceError;
 use crate::types::client_hashed_password::ClientHashedPassword;
 use crate::types::hashed_password::HashedPassword;

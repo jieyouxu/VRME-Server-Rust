@@ -10,7 +10,7 @@ pub mod settings;
 pub mod types;
 mod welcome;
 
-use crate::database::ConnectionPool;
+use crate::database::postgresql::ConnectionPool as PGConnectionPool;
 use crate::settings::Settings;
 
 use actix_ratelimit::{MemoryStore, MemoryStoreActor, RateLimiter};
@@ -60,7 +60,7 @@ async fn main() -> std::io::Result<()> {
 	// value (by cloning) to prevent moving values.
 	//
 	// In pseduo-Haskell type signature: `create_app :: (Settings, ConnectionPool) -> move () -> App`.
-	let create_app = |settings: Settings, connection_pool: ConnectionPool| {
+	let create_app = |settings: Settings, pg_connection_pool: PGConnectionPool| {
 		move || {
 			let auth_middleware = HttpAuthentication::bearer(auth::middleware::identity_validator);
 			let rate_limit_memory_store = MemoryStore::new();
@@ -85,7 +85,7 @@ async fn main() -> std::io::Result<()> {
 						.limit(settings.server.json_size_limit)
 						.error_handler(json_error_handler::handle_json_error),
 				)
-				.data(connection_pool.clone())
+				.data(pg_connection_pool.clone())
 				.route(
 					"/register",
 					web::post().to(accounts::register::handle_registration),
@@ -176,8 +176,8 @@ fn read_settings() -> settings::Settings {
 	}
 }
 
-fn create_connection_pool(settings: &settings::DatabaseSettings) -> database::ConnectionPool {
-	match database::ConnectionPool::from_settings(settings) {
+fn create_connection_pool(settings: &settings::DatabaseSettings) -> PGConnectionPool {
+	match PGConnectionPool::from_settings(settings) {
 		Ok(pool) => pool,
 		Err(e) => {
 			error!("Failed to create connection pool: {:?}", &e);
