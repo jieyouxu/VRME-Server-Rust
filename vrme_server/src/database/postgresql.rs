@@ -1,12 +1,11 @@
 //! Persistent database and connection pool setup and configuration.
 
+use super::error::DatabaseError;
 use crate::settings::DatabaseSettings;
 
-use actix_web::ResponseError;
-use deadpool_postgres::{config, Client, Pool, PoolError};
-use derive_more::{Display, From};
+use deadpool_postgres::{config, Client, Pool};
+use derive_more::From;
 use log::{debug, error, info};
-use std::convert::From;
 use tokio_postgres::NoTls;
 
 /// Persistent database connection pool.
@@ -15,9 +14,7 @@ pub struct PersistentConnectionPool(Pool);
 
 impl PersistentConnectionPool {
 	/// Initialize a PostgreSQL database pool from supplied `database_settings`.
-	pub fn from_settings(
-		database_settings: &DatabaseSettings,
-	) -> Result<PersistentConnectionPool, DatabaseError> {
+	pub fn from_settings(database_settings: &DatabaseSettings) -> Result<Self, DatabaseError> {
 		let database_settings = database_settings.clone();
 
 		let postgres_config = config::Config {
@@ -54,25 +51,3 @@ impl PersistentConnectionPool {
 		self.0.get().await.map_err(|e| e.into())
 	}
 }
-
-/// Errors related to database.
-#[derive(Debug, Display, PartialEq)]
-pub enum DatabaseError {
-	/// Failed to create a database connection pool.
-	#[display(fmt = "failed to create pool: {}", "_0")]
-	PoolCreationError(String),
-}
-
-impl From<PoolError> for DatabaseError {
-	fn from(e: PoolError) -> Self {
-		Self::PoolCreationError(e.to_string())
-	}
-}
-
-impl From<config::ConfigError> for DatabaseError {
-	fn from(e: config::ConfigError) -> Self {
-		Self::PoolCreationError(e.to_string())
-	}
-}
-
-impl ResponseError for DatabaseError {}
