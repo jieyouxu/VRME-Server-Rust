@@ -4,6 +4,7 @@ pub mod avatars;
 pub mod database;
 mod json_error_handler;
 pub mod logging;
+pub mod meetings;
 pub mod service_errors;
 pub mod settings;
 pub mod types;

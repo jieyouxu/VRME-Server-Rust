@@ -1,5 +1,4 @@
-//! In-memory key-value map for holding meeting session information that can be shared between
-//! threads; read and writes are safe so as long as each writer is guarded by a `Mutex`.
+//! Data type definition for a meeting session.
 
 use uuid::Uuid;
 
@@ -16,7 +15,7 @@ pub type Listener = Uuid;
 /// and zero or more *listeners*. Each meeting session is given a unique `Uuid` to differentiate
 /// between sessions and to determine which user(s) have priviledges to change meeting session
 /// settings, invite attendees, kick attendees, upload presentation slides, etc.
-#[derive(Debug, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct MeetingSession {
 	presenter: Presenter,
 	listeners: Vec<Listener>,
@@ -35,7 +34,7 @@ impl MeetingSession {
 
 	/// Initiate a new `MeetingSession` with `listeners`. Must also be started by an authenticated
 	/// `presenter`.
-	pub fn with_listeners(presenter_id: Uuid, listeners_ids: Vec<Uuid>) {
+	pub fn with_listeners(presenter_id: Uuid, listeners_ids: Vec<Uuid>) -> Self {
 		Self {
 			presenter: presenter_id,
 			listeners: listeners_ids,
@@ -60,7 +59,7 @@ impl MeetingSession {
 
 	/// Remove a `listener` from the meeting session.
 	pub fn remove_listener(&mut self, listener_id: &Uuid) -> &mut Self {
-		self.listeners.remove_item(&listener_id);
+		self.listeners.retain(|id| listener_id != id);
 		self
 	}
 }
