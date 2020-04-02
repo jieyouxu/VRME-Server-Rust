@@ -5,3 +5,8 @@ config/*
 !config/default.example.toml
 !config/development.example.toml
 !config/production.example.toml
+
+### Redis Dump ###
+
+# Database dump
+dump.rdb
