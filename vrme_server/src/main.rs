@@ -10,7 +10,7 @@ pub mod settings;
 pub mod types;
 mod welcome;
 
-use crate::database::postgresql::ConnectionPool as PGConnectionPool;
+use crate::database::postgresql::PersistentConnectionPool;
 use crate::settings::Settings;
 
 use actix_ratelimit::{MemoryStore, MemoryStoreActor, RateLimiter};
@@ -60,7 +60,7 @@ async fn main() -> std::io::Result<()> {
 	// value (by cloning) to prevent moving values.
 	//
 	// In pseduo-Haskell type signature: `create_app :: (Settings, ConnectionPool) -> move () -> App`.
-	let create_app = |settings: Settings, pg_connection_pool: PGConnectionPool| {
+	let create_app = |settings: Settings, pg_connection_pool: PersistentConnectionPool| {
 		move || {
 			let auth_middleware = HttpAuthentication::bearer(auth::middleware::identity_validator);
 			let rate_limit_memory_store = MemoryStore::new();
@@ -176,8 +176,8 @@ fn read_settings() -> settings::Settings {
 	}
 }
 
-fn create_connection_pool(settings: &settings::DatabaseSettings) -> PGConnectionPool {
-	match PGConnectionPool::from_settings(settings) {
+fn create_connection_pool(settings: &settings::DatabaseSettings) -> PersistentConnectionPool {
+	match PersistentConnectionPool::from_settings(settings) {
 		Ok(pool) => pool,
 		Err(e) => {
 			error!("Failed to create connection pool: {:?}", &e);

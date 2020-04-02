@@ -2,7 +2,7 @@
 
 use crate::auth::auth_payload::AuthPayload;
 use crate::auth::errors::AuthError;
-use crate::database::postgresql::ConnectionPool;
+use crate::database::postgresql::PersistentConnectionPool;
 use crate::service_errors::ServiceError;
 use crate::settings::Settings;
 use actix_web::dev::ServiceRequest;
@@ -34,7 +34,7 @@ pub async fn identity_validator(
 
 	debug!("Received `auth_payload` {:#?}", &auth_payload);
 
-	let pool = req.app_data::<ConnectionPool>().unwrap();
+	let pool = req.app_data::<PersistentConnectionPool>().unwrap();
 	let client = pool.get().await?;
 
 	let last_used = match find_auth_session(&client, &auth_payload).await {

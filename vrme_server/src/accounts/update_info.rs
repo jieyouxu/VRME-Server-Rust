@@ -1,6 +1,6 @@
 //! Handle updating user account information.
 
-use crate::database::postgresql::ConnectionPool;
+use crate::database::postgresql::PersistentConnectionPool;
 use crate::service_errors::ServiceError;
 use actix_web::{web, Error, HttpResponse};
 use deadpool_postgres::Client;
@@ -54,7 +54,7 @@ pub struct UpdateAccountInformationRequest {
 /// If the `uuid` of a user is lost by the client, it is possible to recover the `uuid` of the user
 /// by the `GET /user/uuid` endpoint.
 pub async fn handle_update_user_account(
-	pool: web::Data<ConnectionPool>,
+	pool: web::Data<PersistentConnectionPool>,
 	path: web::Path<uuid::Uuid>,
 	req: web::Json<UpdateAccountInformationRequest>,
 ) -> Result<HttpResponse, Error> {

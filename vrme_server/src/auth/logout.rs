@@ -2,7 +2,7 @@
 //! `{uuid}`.
 
 use crate::auth::auth_payload::AuthPayload;
-use crate::database::postgresql::ConnectionPool;
+use crate::database::postgresql::PersistentConnectionPool;
 use crate::service_errors::ServiceError;
 use actix_web::web;
 use actix_web::{Error, HttpResponse};
@@ -13,7 +13,7 @@ use uuid::Uuid;
 /// Handles logout. Deletes the user's associated authentication session. Any `auth_token`s issued
 /// to that user will be invalidated and the user will need to login again.
 pub async fn handle_logout(
-	pool: web::Data<ConnectionPool>,
+	pool: web::Data<PersistentConnectionPool>,
 	auth: BearerAuth,
 ) -> Result<HttpResponse, Error> {
 	let client = pool.get().await?;
