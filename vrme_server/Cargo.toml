@@ -46,14 +46,11 @@ derive_more = { version = "0.99.5", features = ["from", "display"] }
 bytes = "0.5.4"
 color-backtrace = { version = "0.3.0", default-features = false }
 
-# Persistent Database
+# Database
 deadpool-postgres = "0.5.5"
 tokio-pg-mapper = "0.1.7"
 tokio-pg-mapper-derive = "0.1.5"
 tokio-postgres = { version = "0.5.3", features = ["with-chrono-0_4", "with-serde_json-1", "with-uuid-0_8"] }
-
-# In-Memory Database
-deadpool-redis = "0.5.2"
 
 # Async
 futures = "0.3.4"
