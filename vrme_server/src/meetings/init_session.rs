@@ -65,7 +65,7 @@ async fn create_new_session_or_return_existing(
 	client: &Client,
 	presenter_id: &Uuid,
 ) -> Result<MeetingSessionResponsePayload, ServiceError> {
-	let statement = client.prepare(UPSERT_MEETING_SESSION_QUERY).await.unwrap();
+	let statement = client.prepare(UPSERT_MEETING_SESSION_QUERY).await?;
 
 	let meeting_id = Uuid::new_v4();
 	let listeners: Vec<Uuid> = Vec::new();
