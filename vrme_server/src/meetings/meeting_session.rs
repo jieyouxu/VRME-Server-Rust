@@ -48,11 +48,30 @@ impl MeetingSession {
 
 	/// Get the listeners's `user_id`.
 	pub fn listeners(&self) -> &[Uuid] {
-		&self.listeners
+		&self.listeners[..]
 	}
 
-	/// Add a `listener` to the meeting session.
+	/// Get all participants of a meeting session, including the presenter and listeners.
+	///
+	/// Note: this method allocates a `Vec` with size `1 + listeners.len()`.
+	pub fn participants(&self) -> Vec<Uuid> {
+		let mut participants: Vec<Uuid> = Vec::with_capacity(1 + self.listeners.len());
+		participants.clone_from(&self.listeners);
+		participants.push(self.presenter.clone());
+		participants
+	}
+
+	/// Add a `listener` to the meeting session. If the listener already exists as the presenter or
+	/// listener, nothing is modified.
 	pub fn add_listener(&mut self, listener_id: Uuid) -> &mut Self {
+		if &self.presenter == &listener_id {
+			return self;
+		}
+
+		if self.listeners.contains(&listener_id) {
+			return self;
+		}
+
 		self.listeners.push(listener_id);
 		self
 	}
