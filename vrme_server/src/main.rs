@@ -136,9 +136,18 @@ async fn main() -> std::io::Result<()> {
 					),
 				)
 				.service(
-					web::scope("/meetings/{meeting_id}").service(web::resource("").route(
-						web::get().to(meetings::get_session_info::handle_get_meeting_session_info),
-					)),
+					web::scope("/meetings/{meeting_id}")
+						.service(
+							web::resource("").route(
+								web::get().to(
+									meetings::get_session_info::handle_get_meeting_session_info,
+								),
+							),
+						)
+						.service(
+							web::resource("/listener")
+								.route(web::post().to(meetings::add_listener::handle_add_listener)),
+						),
 				)
 		}
 	};
