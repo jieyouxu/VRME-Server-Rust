@@ -107,7 +107,7 @@ async fn main() -> std::io::Result<()> {
 					web::get().to(accounts::get_uuid::handle_get_uuid),
 				)
 				.service(
-					web::scope("/account/{uuid}")
+					web::scope("/accounts/{uuid}")
 						.service(web::resource("").wrap(auth_middleware.clone()).route(
 							web::put().to(accounts::update_info::handle_update_user_account),
 						))
@@ -134,6 +134,11 @@ async fn main() -> std::io::Result<()> {
 							.wrap(auth_middleware.clone())
 							.route(web::post().to(meetings::init_session::handle_init_session)),
 					),
+				)
+				.service(
+					web::scope("/meetings/{meeting_id}").service(web::resource("").route(
+						web::get().to(meetings::get_session_info::handle_get_meeting_session_info),
+					)),
 				)
 		}
 	};
