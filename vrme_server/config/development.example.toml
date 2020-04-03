@@ -47,13 +47,3 @@ port = 8081
 cert_path = "./tls/cert_file.pem"
 # TLS key file path.
 key_path = "./tls/key_file.key"
-
-[redis]
-# Hostname of redis server.
-hostname = "127.0.0.1"
-# Port of redis server
-port = 6379
-# Redis server account password
-password = ""
-# Redis server database number
-database_number = 0
