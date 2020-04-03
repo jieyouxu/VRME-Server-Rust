@@ -11,7 +11,6 @@ pub mod types;
 mod welcome;
 
 use crate::database::postgresql::PersistentConnectionPool;
-use crate::database::redis::InMemoryConnectionPool;
 use crate::settings::Settings;
 
 use actix_ratelimit::{MemoryStore, MemoryStoreActor, RateLimiter};
@@ -57,15 +56,12 @@ async fn main() -> std::io::Result<()> {
 	info!("Server listening on http://{}", &socket_address);
 
 	let persistent_connection_pool = create_persistent_connection_pool(&settings.database);
-	let in_memory_connection_pool = create_in_memory_connection_pool(&settings.redis);
 
 	// Curried closure: required data `settings` and `connection_pool` needs to be passed in by
 	// value (by cloning) to prevent moving values.
 	//
 	// In pseduo-Haskell type signature: `create_app :: (Settings, ConnectionPool) -> move () -> App`.
-	let create_app = |settings: Settings,
-	                  persistent_connection_pool: PersistentConnectionPool,
-	                  in_memory_connection_pool: InMemoryConnectionPool| {
+	let create_app = |settings: Settings, persistent_connection_pool: PersistentConnectionPool| {
 		move || {
 			let auth_middleware = HttpAuthentication::bearer(auth::middleware::identity_validator);
 			let rate_limit_memory_store = MemoryStore::new();
@@ -91,7 +87,6 @@ async fn main() -> std::io::Result<()> {
 						.error_handler(json_error_handler::handle_json_error),
 				)
 				.data(persistent_connection_pool.clone())
-				.data(in_memory_connection_pool.clone())
 				.route(
 					"/register",
 					web::post().to(accounts::register::handle_registration),
@@ -139,7 +134,6 @@ async fn main() -> std::io::Result<()> {
 	let server = HttpServer::new(create_app(
 		settings.clone(),
 		persistent_connection_pool.clone(),
-		in_memory_connection_pool.clone(),
 	))
 	.bind(socket_address)?;
 
@@ -196,17 +190,6 @@ fn create_persistent_connection_pool(
 		Err(e) => {
 			error!("Failed to create postgresql connection pool: {:?}", &e);
 			panic!("Failed to create postgresql connection pool: {:?}", &e);
-		}
-	}
-}
-
-#[inline]
-fn create_in_memory_connection_pool(settings: &settings::RedisSettings) -> InMemoryConnectionPool {
-	match InMemoryConnectionPool::from_settings(settings) {
-		Ok(pool) => pool,
-		Err(e) => {
-			error!("Failed to create redis connection pool: {:?}", &e);
-			panic!("Failed to create redis connection pool: {:?}", &e);
 		}
 	}
 }

@@ -4,7 +4,6 @@ use actix_web::ResponseError;
 use config::ConfigError;
 use deadpool_postgres::config::ConfigError as PostgresConfigError;
 use deadpool_postgres::PoolError as PostgresPoolError;
-use deadpool_redis::PoolError as RedisPoolError;
 use derive_more::Display;
 use std::convert::From;
 
@@ -15,12 +14,6 @@ pub enum DatabaseError {
 	/// database.
 	#[display(fmt = "failed to create connection pool: {}", "_0")]
 	PoolCreationError(String),
-}
-
-impl From<RedisPoolError> for DatabaseError {
-	fn from(e: RedisPoolError) -> Self {
-		Self::PoolCreationError(e.to_string())
-	}
 }
 
 impl From<PostgresPoolError> for DatabaseError {
