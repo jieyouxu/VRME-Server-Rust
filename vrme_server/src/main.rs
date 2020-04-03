@@ -128,6 +128,13 @@ async fn main() -> std::io::Result<()> {
 								),
 						),
 				)
+				.service(
+					web::scope("/meetings").service(
+						web::resource("")
+							.wrap(auth_middleware.clone())
+							.route(web::post().to(meetings::init_session::handle_init_session)),
+					),
+				)
 		}
 	};
 
