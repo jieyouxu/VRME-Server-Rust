@@ -36,6 +36,9 @@ pub enum ServiceError {
 
 	#[display(fmt = "unsupported media type: {}", "_0")]
 	UnsupportedMediaType(String),
+
+	#[display(fmt = "not found: {}", "_0")]
+	NotFound(String),
 }
 
 impl std::error::Error for ServiceError {}
@@ -103,6 +106,10 @@ impl ResponseError for ServiceError {
 					"message": s
 				}))
 			}
+			ServiceError::NotFound(ref s) => HttpResponse::NotFound().json(json!({
+				"cause": "not-found",
+				"message": s
+			})),
 		}
 	}
 }
