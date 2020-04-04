@@ -5,6 +5,7 @@ pub mod database;
 mod json_error_handler;
 pub mod logging;
 pub mod meetings;
+pub mod presentations;
 pub mod service_errors;
 pub mod settings;
 pub mod types;
@@ -152,6 +153,12 @@ async fn main() -> std::io::Result<()> {
 						.service(
 							web::resource("/leave").route(
 								web::post().to(meetings::leave::handle_leave_meeting_session),
+							),
+						)
+						.service(
+							web::resource("/presentation").route(
+								web::post()
+									.to(presentations::upload::handle_upload_presentation_slides),
 							),
 						),
 				)
