@@ -1,6 +1,6 @@
 language: rust
 
-before_script: cd vrme_server_rust
+before_script: cd vrme_server
 
 after_success: |
   [ $TRAVIS_BRANCH = master ] &&
