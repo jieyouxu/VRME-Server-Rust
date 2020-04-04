@@ -33,7 +33,7 @@ pub async fn handle_init_session(
 	let meeting_session_response_payload =
 		create_new_session_or_return_existing(&client, &presenter_id).await?;
 
-	Ok(HttpResponse::Ok().json(meeting_session_response_payload))
+	Ok(HttpResponse::Created().json(meeting_session_response_payload))
 }
 
 const UPSERT_MEETING_SESSION_QUERY: &str = r#"
