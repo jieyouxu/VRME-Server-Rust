@@ -111,6 +111,11 @@ async fn main() -> std::io::Result<()> {
 					)
 					.service(
 						web::scope("/accounts/{uuid}")
+							.service(
+								web::resource("").route(
+									web::get().to(accounts::get_info::handle_get_account_info),
+								),
+							)
 							.service(web::resource("").wrap(auth_middleware.clone()).route(
 								web::put().to(accounts::update_info::handle_update_user_account),
 							))
