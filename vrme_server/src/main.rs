@@ -137,6 +137,7 @@ async fn main() -> std::io::Result<()> {
 				)
 				.service(
 					web::scope("/meetings/{meeting_id}")
+						.wrap(auth_middleware.clone())
 						.service(
 							web::resource("").route(
 								web::get().to(
@@ -147,6 +148,11 @@ async fn main() -> std::io::Result<()> {
 						.service(
 							web::resource("/listener")
 								.route(web::post().to(meetings::add_listener::handle_add_listener)),
+						)
+						.service(
+							web::resource("/leave").route(
+								web::post().to(meetings::leave::handle_leave_meeting_session),
+							),
 						),
 				)
 		}
