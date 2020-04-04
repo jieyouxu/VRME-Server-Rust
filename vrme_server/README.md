@@ -19,6 +19,7 @@ createdb -O <USERNAME> <DATABASE_NAME>
 ```bash
 psql -f src/database/setup/init_accounts.sql
 psql -f src/database/setup/init_auth_sessions.sql
+psql -f src/database/setup/init_meeting_sessions.sql
 ```
 
 4. Edit configuration under `config/` and run the server:
