@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["GET_PARTICIPANTS_QUERY",""]],"fn":[["get_participants",""],["get_presentation_file",""],["handle_get_presentation","Handler for getting presentation file. Only meeting participants may get the presentation file."],["is_participant",""]]});

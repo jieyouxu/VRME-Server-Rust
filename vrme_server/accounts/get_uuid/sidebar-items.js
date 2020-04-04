@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["GET_UUID_GIVEN_EMAIL_QUERY",""],["_IMPL_DESERIALIZE_FOR_GetUuidRequest",""],["_IMPL_SERIALIZE_FOR_GetUuidRequest",""]],"fn":[["get_uuid_given_email","Retreive the user's `Uuid` given their `email` address."],["handle_get_uuid",""]],"struct":[["GetUuidRequest","Required information to get a person's `uuid`."]]});

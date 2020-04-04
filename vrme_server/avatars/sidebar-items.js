@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["delete_avatar","Delete user's avatar."],["get_avatar","Retrieve avatar."],["upload","Handler for uploading an avatar – either to replace a \"default\" avatar or to replace the current active avatar."]]});

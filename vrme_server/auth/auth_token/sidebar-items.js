@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["AUTH_TOKEN_LEN","Length of an `auth_token` in bytes."],["_IMPL_DESERIALIZE_FOR_AuthToken",""],["_IMPL_SERIALIZE_FOR_AuthToken",""]],"struct":[["AuthToken","Newtype wrapper around an authentication token."]]});

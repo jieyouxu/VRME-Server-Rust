@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ARError","Custom error type. Useful for logging and debugging different kinds of errors. This type can be converted to Actix Error, which defaults to InternalServerError"]]});

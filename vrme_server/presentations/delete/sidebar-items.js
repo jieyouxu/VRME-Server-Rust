@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["GET_PARTICIPANTS_QUERY",""]],"fn":[["delete_file",""],["get_participants",""],["handle_delete_presentation","Handler for deleting presentation file."],["is_presenter",""]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["ByteString","A utf-8 encoded string with [`Bytes`] as a storage."]]});

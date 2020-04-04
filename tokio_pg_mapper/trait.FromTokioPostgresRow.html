@@ -1,0 +1,68 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `FromTokioPostgresRow` trait in crate `tokio_pg_mapper`."><meta name="keywords" content="rust, rustlang, rust-lang, FromTokioPostgresRow"><title>tokio_pg_mapper::FromTokioPostgresRow - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../dark.css"><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="shortcut icon" href="../favicon.ico"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc trait"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../tokio_pg_mapper/index.html'><div class='logo-container'><img src='../rust-logo.png' alt='logo'></div></a><p class='location'>Trait FromTokioPostgresRow</p><div class="sidebar-elems"><div class="block items"><a class="sidebar-title" href="#required-methods">Required Methods</a><div class="sidebar-links"><a href="#tymethod.from_row">from_row</a><a href="#tymethod.from_row_ref">from_row_ref</a><a href="#tymethod.sql_fields">sql_fields</a><a href="#tymethod.sql_table">sql_table</a><a href="#tymethod.sql_table_fields">sql_table_fields</a></div><a class="sidebar-title" href="#implementors">Implementors</a></div><p class='location'><a href='index.html'>tokio_pg_mapper</a></p><script>window.sidebarCurrent = {name: 'FromTokioPostgresRow', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../src/tokio_pg_mapper/lib.rs.html#78-165' title='goto source code'>[src]</a></span><span class='in-band'>Trait <a href='index.html'>tokio_pg_mapper</a>::<wbr><a class="trait" href=''>FromTokioPostgresRow</a></span></h1><div class="docblock type-decl hidden-by-usual-hider"><pre class='rust trait'>pub trait FromTokioPostgresRow: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a> {
+    fn <a href='#tymethod.from_row' class='fnname'>from_row</a>(row: <a class="struct" href="../tokio_postgres/row/struct.Row.html" title="struct tokio_postgres::row::Row">TokioRow</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;Self, <a class="enum" href="../tokio_pg_mapper/enum.Error.html" title="enum tokio_pg_mapper::Error">Error</a>&gt;;
+<div class='item-spacer'></div>    fn <a href='#tymethod.from_row_ref' class='fnname'>from_row_ref</a>(row: &amp;<a class="struct" href="../tokio_postgres/row/struct.Row.html" title="struct tokio_postgres::row::Row">TokioRow</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;Self, <a class="enum" href="../tokio_pg_mapper/enum.Error.html" title="enum tokio_pg_mapper::Error">Error</a>&gt;;
+<div class='item-spacer'></div>    fn <a href='#tymethod.sql_table' class='fnname'>sql_table</a>() -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html" title="struct alloc::string::String">String</a>;
+<div class='item-spacer'></div>    fn <a href='#tymethod.sql_fields' class='fnname'>sql_fields</a>() -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html" title="struct alloc::string::String">String</a>;
+<div class='item-spacer'></div>    fn <a href='#tymethod.sql_table_fields' class='fnname'>sql_table_fields</a>() -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html" title="struct alloc::string::String">String</a>;
+}</pre></div><div class='docblock'><p>Trait containing various methods for converting from a <code>tokio-postgres</code> Row
+to a mapped type.</p>
+<p>When using the <code>pg_mapper_derive</code> crate's <code>TokioPostgresMapper</code> proc-macro,
+this will automatically be implemented on types.</p>
+<p>The [<code>from_row</code>] method exists for consuming a <code>Row</code> - useful
+for iterator mapping - while [<code>from_row_ref</code>] exists for borrowing
+a <code>Row</code>.</p>
+</div>
+            <h2 id='required-methods' class='small-section-header'>Required methods<a href='#required-methods' class='anchor'></a></h2><div class='methods'><h3 id='tymethod.from_row' class='method'><code id='from_row.v'>fn <a href='#tymethod.from_row' class='fnname'>from_row</a>(row: <a class="struct" href="../tokio_postgres/row/struct.Row.html" title="struct tokio_postgres::row::Row">TokioRow</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;Self, <a class="enum" href="../tokio_pg_mapper/enum.Error.html" title="enum tokio_pg_mapper::Error">Error</a>&gt;</code></h3><div class='docblock'><p>Converts from a <code>tokio-postgres</code> <code>Row</code> into a mapped type, consuming the
+given <code>Row</code>.</p>
+<h1 id="errors" class="section-header"><a href="#errors">Errors</a></h1>
+<p>Returns <a href="enum.Error.html#variant.ColumnNotFound"><code>Error::ColumnNotFound</code></a> if the column in a mapping was not
+found.</p>
+<p>Returns <a href="enum.Error.html#variant.Conversion"><code>Error::Conversion</code></a> if there was an error converting the row
+column to the requested type.</p>
+</div><h3 id='tymethod.from_row_ref' class='method'><code id='from_row_ref.v'>fn <a href='#tymethod.from_row_ref' class='fnname'>from_row_ref</a>(row: &amp;<a class="struct" href="../tokio_postgres/row/struct.Row.html" title="struct tokio_postgres::row::Row">TokioRow</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;Self, <a class="enum" href="../tokio_pg_mapper/enum.Error.html" title="enum tokio_pg_mapper::Error">Error</a>&gt;</code></h3><div class='docblock'><p>Converts from a <code>tokio-postgres</code> <code>Row</code> into a mapped type, borrowing the
+given <code>Row</code>.</p>
+<h1 id="errors-1" class="section-header"><a href="#errors-1">Errors</a></h1>
+<p>Returns <a href="enum.Error.html#variant.ColumnNotFound"><code>Error::ColumnNotFound</code></a> if the column in a mapping was not
+found.</p>
+<p>Returns <a href="enum.Error.html#variant.Conversion"><code>Error::Conversion</code></a> if there was an error converting the row
+column into the requested type.</p>
+</div><h3 id='tymethod.sql_table' class='method'><code id='sql_table.v'>fn <a href='#tymethod.sql_table' class='fnname'>sql_table</a>() -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html" title="struct alloc::string::String">String</a></code></h3><div class='docblock'><p>Get the name of the annotated sql table name.</p>
+<p>Example:</p>
+<p>The following will return the String &quot; user &quot;.
+Note the extra spaces on either side to avoid incorrect formatting.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PostgresMapper</span>)]</span>
+    <span class="attribute">#[<span class="ident">pg_mapper</span>(<span class="ident">table</span> <span class="op">=</span> <span class="string">&quot;user&quot;</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">User</span> {
+        <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">i64</span>,
+        <span class="kw">pub</span> <span class="ident">email</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    }</pre></div>
+</div><h3 id='tymethod.sql_fields' class='method'><code id='sql_fields.v'>fn <a href='#tymethod.sql_fields' class='fnname'>sql_fields</a>() -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html" title="struct alloc::string::String">String</a></code></h3><div class='docblock'><p>Get a list of the field names, excluding table name prefix. </p>
+<p>Example:</p>
+<p>The following will return the String &quot; id, email &quot;.
+Note the extra spaces on either side to avoid incorrect formatting.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PostgresMapper</span>)]</span>
+    <span class="attribute">#[<span class="ident">pg_mapper</span>(<span class="ident">table</span> <span class="op">=</span> <span class="string">&quot;user&quot;</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">User</span> {
+        <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">i64</span>,
+        <span class="kw">pub</span> <span class="ident">email</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    }</pre></div>
+</div><h3 id='tymethod.sql_table_fields' class='method'><code id='sql_table_fields.v'>fn <a href='#tymethod.sql_table_fields' class='fnname'>sql_table_fields</a>() -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html" title="struct alloc::string::String">String</a></code></h3><div class='docblock'><p>Get a list of the field names, including table name prefix.</p>
+<p>We also expect an attribute tag #[pg_mapper(table = &quot;foo&quot;)]
+so that a scoped list of fields can be generated.</p>
+<p>Example:</p>
+<p>The following will return the String &quot; user.id, user.email &quot;.
+Note the extra spaces on either side to avoid incorrect formatting.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PostgresMapper</span>)]</span>
+    <span class="attribute">#[<span class="ident">pg_mapper</span>(<span class="ident">table</span> <span class="op">=</span> <span class="string">&quot;user&quot;</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">User</span> {
+        <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">i64</span>,
+        <span class="kw">pub</span> <span class="ident">email</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    }</pre></div>
+</div></div><span class='loading-content'>Loading content...</span>
+            <h2 id='implementors' class='small-section-header'>Implementors<a href='#implementors' class='anchor'></a></h2><div class='item-list' id='implementors-list'></div><span class='loading-content'>Loading content...</span><script type="text/javascript" src="../implementors/tokio_pg_mapper/trait.FromTokioPostgresRow.js" async></script></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "tokio_pg_mapper";</script><script src="../aliases.js"></script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

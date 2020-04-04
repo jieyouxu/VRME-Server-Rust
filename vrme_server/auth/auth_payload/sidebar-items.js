@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["BASE64_ENCODED_AUTH_TOKEN_LEN","Length of an `base64`-encoded `auth_token`."],["INVALID_AUTH_TOKEN_LEN_ERR_MSG",""],["_IMPL_DESERIALIZE_FOR_AuthPayload",""],["_IMPL_SERIALIZE_FOR_AuthPayload",""]],"struct":[["AuthPayload","Required authentication payload."]]});

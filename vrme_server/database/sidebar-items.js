@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["error","Database errors emitted during initialization, connection establishment and execution."],["postgresql","Persistent database and connection pool setup and configuration."]]});

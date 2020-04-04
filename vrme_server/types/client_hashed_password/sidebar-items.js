@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["BASE64_ENCODED_HASHED_PASSWORD_LEN","`32` bytes of password needs `(4 * 44) / 3).ceil() == 43` base64 characters to encode, and needs to be rounded up to `44` which is the next multiple of `4`."]],"struct":[["ClientHashedPassword","Base64-encoded client-side password hash."]]});

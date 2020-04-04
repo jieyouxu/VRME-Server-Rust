@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["DispatcherError","Framed transport errors"],["Message",""]],"struct":[["Dispatcher","FramedTransport - is a future that reads frames from Framed object and pass then to the service."]]});

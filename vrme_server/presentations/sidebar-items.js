@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["delete","Handles delete presentation."],["get_presentation","Handler for getting presentation file for the given meeting session."],["upload","Handler for uploading presentation slides."]]});

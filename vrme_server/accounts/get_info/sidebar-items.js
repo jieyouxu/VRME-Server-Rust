@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["GET_ACCOUNT_INFO_QUERY",""],["_IMPL_DESERIALIZE_FOR_AccountInfoResponse",""],["_IMPL_SERIALIZE_FOR_AccountInfoResponse",""]],"fn":[["get_account_info",""],["handle_get_account_info","Handler for getting account information (publicly available)."]],"struct":[["AccountInfoResponse",""]]});

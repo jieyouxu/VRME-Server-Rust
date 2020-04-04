@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["PersistentConnectionPool","Persistent database connection pool."]]});

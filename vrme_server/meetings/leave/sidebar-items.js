@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["DELETE_MEETING_SESSION_QUERY",""],["GET_PARTICIPANTS_QUERY",""]],"fn":[["delete_meeting_session",""],["get_participants",""],["handle_leave_meeting_session","Handler for leaving meeting session."],["is_listener",""],["is_presenter",""]]});

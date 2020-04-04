@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["build_path",""],["get_avatar_or_default",""],["handle_get_avatar","Serves the avatar of the user with `uuid`. If the user did not upload an avatar yet, the default avatar is served instead."]]});

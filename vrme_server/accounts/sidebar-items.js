@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["delete","Deletes user account."],["get_info","Handler for fetching account information."],["get_uuid","Get a user's `uuid` by providing the user's email."],["register","Handles user registration and account creation."],["update_info","Handle updating user account information."]]});

@@ -1,0 +1,30 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `update_user_account_handler` fn in crate `vrme_server`."><meta name="keywords" content="rust, rustlang, rust-lang, update_user_account_handler"><title>vrme_server::accounts::update_info::update_user_account_handler - Rust</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc fn"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../vrme_server/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a><div class="sidebar-elems"><p class='location'><a href='../../index.html'>vrme_server</a>::<wbr><a href='../index.html'>accounts</a>::<wbr><a href='index.html'>update_info</a></p><script>window.sidebarCurrent = {name: 'update_user_account_handler', ty: 'fn', relpath: ''};</script><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../../../src/vrme_server/accounts/update_info.rs.html#53-57' title='goto source code'>[src]</a></span><span class='in-band'>Function <a href='../../index.html'>vrme_server</a>::<wbr><a href='../index.html'>accounts</a>::<wbr><a href='index.html'>update_info</a>::<wbr><a class="fn" href=''>update_user_account_handler</a></span></h1><pre class='rust fn'>pub async fn update_user_account_handler(_path: Path&lt;<a class="struct" href="https://docs.rs/uuid/0.8.1/uuid/struct.Uuid.html" title="struct uuid::Uuid">Uuid</a>&gt;) -&gt; HttpResponse</pre><div class='docblock'><p>Handles endpoint for updating user information at <code>PUT /account/{uuid}</code>.</p>
+<h2 id="path-information" class="section-header"><a href="#path-information">Path Information</a></h2>
+<p>The route parameter required is:</p>
+<ul>
+<li><code>{uuid}</code>: the unique identifier of the user generated upon successful registration.</li>
+</ul>
+<h2 id="authentication-required" class="section-header"><a href="#authentication-required">Authentication Required</a></h2>
+<p>Required to supply the <code>Authentication: Bearer &lt;uuid-token-pair&gt;</code>.</p>
+<h2 id="required-payload" class="section-header"><a href="#required-payload">Required Payload</a></h2>
+<p>Specify <code>Content-Type: application/json</code> and <code>Content-Length</code>.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">struct</span> <span class="ident">UpdatedAccountInformation</span> {
+    <span class="ident">first_name</span>: <span class="ident">String</span>,
+    <span class="ident">last_name</span>: <span class="ident">String</span>,
+}</pre></div>
+<h2 id="example" class="section-header"><a href="#example">Example</a></h2>
+<pre><code class="language-http">PUT /account/{uuid}
+Authorization: Bearer eyJ1dWlkIjoiMTIzZTQ1NjctZTg5Yi0xMmQzLWE0NTYtNDI2NjU1NDQwMDAwIiwiYXV0aC10b2tlbiI6ImJhc2U2NC1lbmNvZGVkIn0=
+Content-Type: application/json
+
+{
+    &quot;first_name&quot;: &quot;NewFirstName&quot;,
+    &quot;last_name&quot;: &quot;NewLastName&quot;
+}
+</code></pre>
+<h2 id="note" class="section-header"><a href="#note">Note</a></h2>
+<p>If the <code>uuid</code> of a user is lost by the client, it is possible to recover the <code>uuid</code> of the user
+by the <code>GET /user/uuid</code> endpoint.</p>
+</div></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "vrme_server";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script defer src="../../../search-index.js"></script></body></html>

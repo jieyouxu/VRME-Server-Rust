@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["GET_MEETING_SESSION_INFO_QUERY",""],["_IMPL_DESERIALIZE_FOR_MeetingSessionInfoResponsePayload",""],["_IMPL_SERIALIZE_FOR_MeetingSessionInfoResponsePayload",""]],"fn":[["get_meeting_session_info",""],["handle_get_meeting_session_info","Handler for getting meeting session information."]],"struct":[["MeetingSessionInfoResponsePayload",""]]});

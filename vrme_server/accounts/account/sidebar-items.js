@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Account","An user account."]],"type":[["Date","Newtype declarartion on `chrono::NaiveDate` which does not take into account timezone information."],["Uuid","Unique identifier for a user's account."]]});

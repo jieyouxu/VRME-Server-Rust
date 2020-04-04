@@ -1,0 +1,50 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `tokio_pg_mapper` crate."><meta name="keywords" content="rust, rustlang, rust-lang, tokio_pg_mapper"><title>tokio_pg_mapper - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../dark.css"><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="shortcut icon" href="../favicon.ico"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../tokio_pg_mapper/index.html'><div class='logo-container'><img src='../rust-logo.png' alt='logo'></div></a><p class='location'>Crate tokio_pg_mapper</p><div class="sidebar-elems"><a id='all-types' href='all.html'><p>See all tokio_pg_mapper's items</p></a><div class="block items"><ul><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'tokio_pg_mapper', ty: 'mod', relpath: '../'};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../src/tokio_pg_mapper/lib.rs.html#1-207' title='goto source code'>[src]</a></span><span class='in-band'>Crate <a class="mod" href=''>tokio_pg_mapper</a></span></h1><div class='docblock'><h1 id="tokio-pg-mapper" class="section-header"><a href="#tokio-pg-mapper">tokio-pg-mapper</a></h1>
+<p><code>tokio-pg-mapper</code> is a proc-macro designed to make mapping from postgresql
+tables to structs simple.</p>
+<h3 id="why" class="section-header"><a href="#why">Why?</a></h3>
+<p>It can be frustrating to write a lot of boilerplate and, ultimately, duplicated
+code for mapping from postgres Rows into structs.</p>
+<p>For example, this might be what someone would normally write:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">use</span> <span class="ident">postgres</span>::<span class="ident">row</span>::<span class="ident">Row</span>;
+
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">User</span> {
+    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">i64</span>,
+    <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">String</span>,
+    <span class="kw">pub</span> <span class="ident">email</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Row</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">User</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">row</span>: <span class="ident">Row</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">id</span>: <span class="ident">row</span>.<span class="ident">get</span>(<span class="string">&quot;id&quot;</span>),
+            <span class="ident">name</span>: <span class="ident">row</span>.<span class="ident">get</span>(<span class="string">&quot;name&quot;</span>),
+            <span class="ident">email</span>: <span class="ident">row</span>.<span class="ident">get</span>(<span class="string">&quot;email&quot;</span>),
+        }
+    }
+}
+
+<span class="comment">// code to execute a query here and get back a row</span>
+<span class="kw">let</span> <span class="ident">user</span> <span class="op">=</span> <span class="ident">User</span>::<span class="ident">from_row</span>(<span class="ident">row</span>); <span class="comment">// returns Result&lt;User, tokio_pg_mapper::Error&gt;</span></pre></div>
+<h3 id="the-two-crates" class="section-header"><a href="#the-two-crates">The two crates</a></h3>
+<p>This repository contains two crates: <code>tokio-pg-mapper</code> which contains an <code>Error</code>
+enum and traits for converting from <code>tokio-postgres</code> <code>Row</code>
+without panicking, and <code>pg-mapper-derive</code> which contains the proc-macro.</p>
+<p><code>pg-mapper-derive</code> has 3 features that can be enabled (where T is the
+struct being derived with the provided <code>TokioPostgresMapper</code> proc-macro):</p>
+<p><code>impl FromTokioPostgresRow&lt;::tokio_postgres::row::Row&gt; for T</code> and
+<code>impl FromTokioPostgresRow&lt;&amp;::tokio_postgres::row::Row&gt; for T</code> implementations</p>
+<ul>
+<li><code>pg-mapper</code> which, for each of the above features, implements
+<code>pg-mapper</code>'s <code>FromTokioPostgresRow</code> trait</li>
+</ul>
+<p>This will derive implementations for converting from owned and referenced
+<code>tokio-postgres::row::Row</code>s, as well as implementing <code>pg-mapper</code>'s
+<code>FromTokioPostgresRow</code> trait for non-panicking conversions.</p>
+</div><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table><tr class='module-item'><td><a class="enum" href="enum.Error.html" title='tokio_pg_mapper::Error enum'>Error</a></td><td class='docblock-short'><p>General error type returned throughout the library.</p>
+</td></tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
+<table><tr class='module-item'><td><a class="trait" href="trait.FromTokioPostgresRow.html" title='tokio_pg_mapper::FromTokioPostgresRow trait'>FromTokioPostgresRow</a></td><td class='docblock-short'><p>Trait containing various methods for converting from a <code>tokio-postgres</code> Row
+to a mapped type.</p>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "tokio_pg_mapper";</script><script src="../aliases.js"></script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

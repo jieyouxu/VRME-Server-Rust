@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["actix_ratelimit"] = [{"text":"impl <a class=\"trait\" href=\"actix/handler/trait.Handler.html\" title=\"trait actix::handler::Handler\">Handler</a>&lt;<a class=\"enum\" href=\"actix_ratelimit/enum.ActorMessage.html\" title=\"enum actix_ratelimit::ActorMessage\">ActorMessage</a>&gt; for <a class=\"struct\" href=\"actix_ratelimit/stores/memory/struct.MemoryStoreActor.html\" title=\"struct actix_ratelimit::stores::memory::MemoryStoreActor\">MemoryStoreActor</a>","synthetic":false,"types":["actix_ratelimit::stores::memory::MemoryStoreActor"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

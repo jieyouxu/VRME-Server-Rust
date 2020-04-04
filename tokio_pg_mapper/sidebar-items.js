@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Error","General error type returned throughout the library."]],"trait":[["FromTokioPostgresRow","Trait containing various methods for converting from a `tokio-postgres` Row to a mapped type."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["RateLimitMiddleware","Service factory for RateLimiter"],["RateLimiter","Type that implements the ratelimit middleware."]]});

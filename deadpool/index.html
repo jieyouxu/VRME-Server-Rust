@@ -1,0 +1,178 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `deadpool` crate."><meta name="keywords" content="rust, rustlang, rust-lang, deadpool"><title>deadpool - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../dark.css"><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="shortcut icon" href="../favicon.ico"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../deadpool/index.html'><div class='logo-container'><img src='../rust-logo.png' alt='logo'></div></a><p class='location'>Crate deadpool</p><div class="sidebar-elems"><a id='all-types' href='all.html'><p>See all deadpool's items</p></a><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#types">Type Definitions</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'deadpool', ty: 'mod', relpath: '../'};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../src/deadpool/lib.rs.html#1-190' title='goto source code'>[src]</a></span><span class='in-band'>Crate <a class="mod" href=''>deadpool</a></span></h1><div class='docblock'><h1 id="deadpool-latest-version-build-status" class="section-header"><a href="#deadpool-latest-version-build-status">Deadpool <img src="https://img.shields.io/crates/v/deadpool.svg" alt="Latest Version" /> <img src="https://travis-ci.org/bikeshedder/deadpool.svg?branch=master" alt="Build Status" /></a></h1>
+<p>Deadpool is a dead simple async pool for connections and objects
+of any type.</p>
+<p>This crate provides two implementations:</p>
+<ul>
+<li>
+<p>Managed pool (<code>deadpool::managed::Pool</code>)</p>
+<ul>
+<li>Creates and recycles objects as needed</li>
+<li>Useful for <a href="#database-connection-pools">database connection pools</a></li>
+<li>Enabled via the <code>managed</code> feature in your <code>Cargo.toml</code></li>
+</ul>
+</li>
+<li>
+<p>Unmanaged pool (<code>deadpool::unmanaged::Pool</code>)</p>
+<ul>
+<li>All objects either need to to be created by the user and added to the
+pool manually. It is also possible to create a pool from an existing
+collection of objects.</li>
+<li>Enabled via the <code>unmanaged</code> feature in your <code>Cargo.toml</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="features" class="section-header"><a href="#features">Features</a></h2><table><thead><tr><th>Feature</th><th>Description</th><th>Extra dependencies</th><th>Default</th></tr></thead><tbody>
+<tr><td><code>managed</code></td><td>Enable managed pool implementation</td><td>–</td><td>yes</td></tr>
+<tr><td><code>unmanaged</code></td><td>Enable unmanaged pool implementation</td><td><code>async-trait</code></td><td>yes</td></tr>
+<tr><td><code>config</code></td><td>Enable support for <a href="https://crates.io/crates/config">config</a> crate</td><td><code>config</code>, <code>serde/derive</code></td><td>yes</td></tr>
+</tbody></table>
+<h2 id="managed-pool-aka-connection-pool" class="section-header"><a href="#managed-pool-aka-connection-pool">Managed pool (aka. connection pool)</a></h2>
+<p>This is the obvious choice for connection pools of any kind. Deadpool already
+comes with a couple of <a href="#database-connection-pools">database connection pools</a>
+which work out of the box.</p>
+<h3 id="example" class="section-header"><a href="#example">Example</a></h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">use</span> <span class="ident">async_trait</span>::<span class="ident">async_trait</span>;
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">enum</span> <span class="ident">Error</span> { <span class="ident">Fail</span> }
+
+<span class="kw">struct</span> <span class="ident">Computer</span> {}
+<span class="kw">struct</span> <span class="ident">Manager</span> {}
+<span class="kw">type</span> <span class="ident">Pool</span> <span class="op">=</span> <span class="ident">deadpool</span>::<span class="ident">managed</span>::<span class="ident">Pool</span><span class="op">&lt;</span><span class="ident">Computer</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
+
+<span class="kw">impl</span> <span class="ident">Computer</span> {
+    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">get_answer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
+        <span class="number">42</span>
+    }
+}
+
+<span class="attribute">#[<span class="ident">async_trait</span>]</span>
+<span class="kw">impl</span> <span class="ident">deadpool</span>::<span class="ident">managed</span>::<span class="ident">Manager</span><span class="op">&lt;</span><span class="ident">Computer</span>, <span class="ident">Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Manager</span> {
+    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Computer</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">Computer</span> {})
+    }
+    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">recycle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">conn</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Computer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">deadpool</span>::<span class="ident">managed</span>::<span class="ident">RecycleResult</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(())
+    }
+}
+
+<span class="attribute">#[<span class="ident">tokio</span>::<span class="ident">main</span>]</span>
+<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">main</span>() {
+    <span class="kw">let</span> <span class="ident">mgr</span> <span class="op">=</span> <span class="ident">Manager</span> {};
+    <span class="kw">let</span> <span class="ident">pool</span> <span class="op">=</span> <span class="ident">Pool</span>::<span class="ident">new</span>(<span class="ident">mgr</span>, <span class="number">16</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">conn</span> <span class="op">=</span> <span class="ident">pool</span>.<span class="ident">get</span>().<span class="kw">await</span>.<span class="ident">unwrap</span>();
+    <span class="kw">let</span> <span class="ident">answer</span> <span class="op">=</span> <span class="ident">conn</span>.<span class="ident">get_answer</span>().<span class="kw">await</span>;
+    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">answer</span>, <span class="number">42</span>);
+}</pre></div>
+<h3 id="database-connection-pools" class="section-header"><a href="#database-connection-pools">Database connection pools</a></h3>
+<p>Deadpool supports various database backends by implementing the
+<code>deadpool::managed::Manager</code> trait. The following backends are
+currently supported:</p>
+<table><thead><tr><th>Backend</th><th>Crate</th></tr></thead><tbody>
+<tr><td><a href="https://crates.io/crates/tokio-postgres">tokio-postgres</a></td><td><a href="https://crates.io/crates/deadpool-postgres">deadpool-postgres</a></td></tr>
+<tr><td><a href="https://crates.io/crates/lapin">lapin</a> (AMQP)</td><td><a href="https://crates.io/crates/deadpool-lapin">deadpool-lapin</a></td></tr>
+<tr><td><a href="https://crates.io/crates/redis">redis</a></td><td><a href="https://crates.io/crates/deadpool-redis">deadpool-redis</a></td></tr>
+</tbody></table>
+<h3 id="reasons-for-yet-another-connection-pool" class="section-header"><a href="#reasons-for-yet-another-connection-pool">Reasons for yet another connection pool</a></h3>
+<p>Deadpool is by no means the only pool implementation available. It does
+things a little different and that is the main reason for it to exist:</p>
+<ul>
+<li>
+<p><strong>Deadpool is compatible with any executor.</strong> Objects are returned to the
+pool using the <code>Drop</code> trait. The health of those objects is checked upon
+next retrieval and not when they are returned. Deadpool never performs any
+actions in the background. This is the reason why deadpool does not need
+to spawn futures and does not rely on a background thread or task of any
+type.</p>
+</li>
+<li>
+<p><strong>Identical startup and runtime behaviour</strong>. When writing long running
+application there usually should be no difference between startup and
+runtime if a database connection is temporarily not available. Nobody
+would expect an application to crash if the database becomes unavailable
+at runtime. So it should not crash on startup either. Creating the pool
+never fails and errors are only ever returned when calling <code>Pool::get()</code>.</p>
+<p>If you really want your application to crash on startup if objects can
+not be created on startup simply call
+<code>pool.get().await.expect(&quot;DB connection failed&quot;)</code> right after creating
+the pool.</p>
+</li>
+<li>
+<p><strong>Deadpool is fast.</strong> The code which returns connections to the pool
+contains no blocking code and retrival uses only one locking primitive.</p>
+</li>
+<li>
+<p><strong>Deadpool is simple.</strong> Dead simple. There is very little API surface.
+The actual code is barely 100 lines of code and lives in the two functions
+<code>Pool::get</code> and <code>Object::drop</code>.</p>
+</li>
+</ul>
+<h3 id="differences-to-other-connection-pool-implementations" class="section-header"><a href="#differences-to-other-connection-pool-implementations">Differences to other connection pool implementations</a></h3>
+<ul>
+<li>
+<p><a href="https://crates.io/crates/r2d2"><code>r2d2</code></a> provides a lot more configuration
+options but only provides a synchroneous interface.</p>
+</li>
+<li>
+<p><a href="https://crates.io/crates/bb8"><code>bb8</code></a> uses a callback based interface (See
+<a href="https://docs.rs/bb8/0.3.1/bb8/struct.Pool.html#method.run"><code>pool.run</code></a>)
+and provides the same configuration options as <code>r2d2</code>. At the time of
+writing there is no official release which supports <code>async/.await</code>.</p>
+</li>
+<li>
+<p><a href="https://crates.io/crates/mobc"><code>mobc</code></a> provides an <code>async/.await</code> based
+interface and provides a lot more configuration options. It requires an
+executor though and the code is a lot more complex.</p>
+</li>
+</ul>
+<h2 id="unmanaged-pool" class="section-header"><a href="#unmanaged-pool">Unmanaged pool</a></h2>
+<p>An unmanaged pool is useful when you can't write a manager for the objects
+you want to pool or simply don't want to. This pool implementation is slightly
+faster than the managed pool because it does not use a <code>Manager</code> trait to
+<code>create</code> and <code>recycle</code> objects but leaves it up to the user.</p>
+<h3 id="unmanaged-pool-example" class="section-header"><a href="#unmanaged-pool-example">Unmanaged pool example</a></h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">use</span> <span class="ident">deadpool</span>::<span class="ident">unmanaged</span>::<span class="ident">Pool</span>;
+
+<span class="kw">struct</span> <span class="ident">Computer</span> {}
+
+<span class="kw">impl</span> <span class="ident">Computer</span> {
+    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">get_answer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
+        <span class="number">42</span>
+    }
+}
+
+<span class="attribute">#[<span class="ident">tokio</span>::<span class="ident">main</span>]</span>
+<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">main</span>() {
+    <span class="kw">let</span> <span class="ident">pool</span> <span class="op">=</span> <span class="ident">Pool</span>::<span class="ident">from</span>(<span class="macro">vec</span><span class="macro">!</span>[
+        <span class="ident">Computer</span> {},
+        <span class="ident">Computer</span> {},
+    ]);
+    <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">pool</span>.<span class="ident">get</span>().<span class="kw">await</span>;
+    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>.<span class="ident">get_answer</span>().<span class="kw">await</span>, <span class="number">42</span>);
+}</pre></div>
+<h2 id="license" class="section-header"><a href="#license">License</a></h2>
+<p>Licensed under either of</p>
+<ul>
+<li>Apache License, Version 2.0 (<a href="LICENSE-APACHE">LICENSE-APACHE</a> or <a href="http://www.apache.org/licenses/LICENSE-2.0)">http://www.apache.org/licenses/LICENSE-2.0)</a></li>
+<li>MIT license (<a href="LICENSE-MIT">LICENSE-MIT</a> or <a href="http://opensource.org/licenses/MIT)">http://opensource.org/licenses/MIT)</a></li>
+</ul>
+<p>at your option.</p>
+</div><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
+<table><tr class='module-item'><td><a class="mod" href="managed/index.html" title='deadpool::managed mod'>managed</a></td><td class='docblock-short'><p>This module contains the managed version of the pool. Managed meaning
+that it requires a <code>Manager</code> trait which is responsible for creating
+and recycling objects as they are needed.</p>
+</td></tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table><tr class='module-item'><td><a class="struct" href="struct.Status.html" title='deadpool::Status struct'>Status</a></td><td class='docblock-short'><p>The current pool status.</p>
+</td></tr></table><h2 id='types' class='section-header'><a href="#types">Type Definitions</a></h2>
+<table><tr class='module-item'><td><a class="type" href="type.Manager.html" title='deadpool::Manager type'>Manager</a></td><td class='docblock-short'><span class="stab deprecated">Deprecated</span><p>This trait was moved to <code>deadpool::managed::Manager</code>.</p>
+</td></tr><tr class='module-item'><td><a class="type" href="type.Object.html" title='deadpool::Object type'>Object</a></td><td class='docblock-short'><span class="stab deprecated">Deprecated</span><p>This struct was moved to <code>deadpool::managed::Object</code>.</p>
+</td></tr><tr class='module-item'><td><a class="type" href="type.Pool.html" title='deadpool::Pool type'>Pool</a></td><td class='docblock-short'><span class="stab deprecated">Deprecated</span><p>This struct was moved to <code>deadpool::managed::Pool</code>.</p>
+</td></tr><tr class='module-item'><td><a class="type" href="type.PoolConfig.html" title='deadpool::PoolConfig type'>PoolConfig</a></td><td class='docblock-short'><span class="stab deprecated">Deprecated</span><p>This struct was moved to<code>deadpool::managed::PoolConfig</code>.</p>
+</td></tr><tr class='module-item'><td><a class="type" href="type.PoolError.html" title='deadpool::PoolError type'>PoolError</a></td><td class='docblock-short'><span class="stab deprecated">Deprecated</span><p>This enum was moved to <code>deadpool::managed::PoolError</code>.</p>
+</td></tr><tr class='module-item'><td><a class="type" href="type.RecycleError.html" title='deadpool::RecycleError type'>RecycleError</a></td><td class='docblock-short'><span class="stab deprecated">Deprecated</span><p>This enum was moved to <code>deadpool::managed::RecycleError</code>.</p>
+</td></tr><tr class='module-item'><td><a class="type" href="type.RecycleResult.html" title='deadpool::RecycleResult type'>RecycleResult</a></td><td class='docblock-short'><span class="stab deprecated">Deprecated</span><p>This type was moved to <code>deadpool::managed::RecycleResult</code>.</p>
+</td></tr><tr class='module-item'><td><a class="type" href="type.TimeoutType.html" title='deadpool::TimeoutType type'>TimeoutType</a></td><td class='docblock-short'><span class="stab deprecated">Deprecated</span><p>This enum was moved to <code>deadpool::managed::TimeoutType</code>.</p>
+</td></tr><tr class='module-item'><td><a class="type" href="type.Timeouts.html" title='deadpool::Timeouts type'>Timeouts</a></td><td class='docblock-short'><span class="stab deprecated">Deprecated</span><p>This struct was moved to <code>deadpool::managed::Timeouts</code>.</p>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "deadpool";</script><script src="../aliases.js"></script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["DELETE_ACCOUNT_QUERY",""],["DELETE_AUTH_SESSION_QUERY",""]],"fn":[["delete_user_account",""],["handle_delete_account","Handler for deleting a user account. This is a destructive operation and the user account cannot be recovered."],["pipelined_prepare",""]]});

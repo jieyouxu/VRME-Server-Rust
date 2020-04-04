@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["delete_file",""],["handle_delete_avatar",""]]});

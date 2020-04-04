@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["GET_PARTICIPANTS_QUERY",""]],"fn":[["check_content_type",""],["create_presentation_file",""],["get_participants",""],["handle_upload_presentation_slides","Handler for the presenter to upload presentation slides for the given meeting session."],["is_presenter",""],["write_to_presentation_file",""]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["AVATAR_SIZE_LIMIT","Upper limit on avatar file size in bytes."]],"fn":[["check_content_type_is_png",""],["create_avatar_file",""],["handle_upload_avatar","Handler for avatar image upload."],["write_to_avatar_file",""]]});
