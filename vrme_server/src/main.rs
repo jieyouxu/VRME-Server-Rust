@@ -62,108 +62,111 @@ async fn main() -> std::io::Result<()> {
 	// value (by cloning) to prevent moving values.
 	//
 	// In pseduo-Haskell type signature: `create_app :: (Settings, ConnectionPool) -> move () -> App`.
-	let create_app = |settings: Settings, persistent_connection_pool: PersistentConnectionPool| {
-		move || {
-			let auth_middleware = HttpAuthentication::bearer(auth::middleware::identity_validator);
-			let rate_limit_memory_store = MemoryStore::new();
+	let create_app =
+		|settings: Settings, persistent_connection_pool: PersistentConnectionPool| {
+			move || {
+				let auth_middleware =
+					HttpAuthentication::bearer(auth::middleware::identity_validator);
+				let rate_limit_memory_store = MemoryStore::new();
 
-			App::new()
-				.wrap(middleware::DefaultHeaders::new().header("X-Version", VERSION))
-				.wrap(middleware::Compress::default())
-				.wrap(
-					// Rate limiting
-					RateLimiter::new(
-						MemoryStoreActor::from(rate_limit_memory_store.clone()).start(),
-					)
-					.with_interval(std::time::Duration::from_secs(
-						settings.rate_limiting.cooldown_duration,
-					))
-					.with_max_requests(settings.rate_limiting.max_requests),
-				)
-				.wrap(middleware::Logger::default())
-				.data(settings.clone())
-				.app_data(
-					web::JsonConfig::default()
-						.limit(settings.server.json_size_limit)
-						.error_handler(json_error_handler::handle_json_error),
-				)
-				.data(persistent_connection_pool.clone())
-				.route(
-					"/register",
-					web::post().to(accounts::register::handle_registration),
-				)
-				.service(
-					web::resource("/account")
-						.wrap(auth_middleware.clone())
-						.route(web::delete().to(accounts::delete::handle_delete_account)),
-				)
-				.route("/login", web::post().to(auth::login::handle_login))
-				.service(
-					web::resource("/logout")
-						.wrap(auth_middleware.clone())
-						.route(web::post().to(auth::logout::handle_logout)),
-				)
-				.route(
-					"/accounts/uuid",
-					web::get().to(accounts::get_uuid::handle_get_uuid),
-				)
-				.service(
-					web::scope("/accounts/{uuid}")
-						.service(web::resource("").wrap(auth_middleware.clone()).route(
-							web::put().to(accounts::update_info::handle_update_user_account),
+				App::new()
+					.wrap(middleware::DefaultHeaders::new().header("X-Version", VERSION))
+					.wrap(middleware::Compress::default())
+					.wrap(
+						// Rate limiting
+						RateLimiter::new(
+							MemoryStoreActor::from(rate_limit_memory_store.clone()).start(),
+						)
+						.with_interval(std::time::Duration::from_secs(
+							settings.rate_limiting.cooldown_duration,
 						))
-						.service(
-							web::resource("/avatar")
-								.route(web::get().to(avatars::get_avatar::handle_get_avatar)),
-						)
-						.service(
-							web::resource("/avatar")
-								.wrap(auth_middleware.clone())
-								.route(web::post().to(avatars::upload::handle_upload_avatar)),
-						)
-						.service(
-							web::resource("/avatar")
-								.wrap(auth_middleware.clone())
-								.route(
-									web::delete().to(avatars::delete_avatar::handle_delete_avatar),
-								),
-						),
-				)
-				.service(
-					web::scope("/meetings").service(
-						web::resource("")
+						.with_max_requests(settings.rate_limiting.max_requests),
+					)
+					.wrap(middleware::Logger::default())
+					.data(settings.clone())
+					.app_data(
+						web::JsonConfig::default()
+							.limit(settings.server.json_size_limit)
+							.error_handler(json_error_handler::handle_json_error),
+					)
+					.data(persistent_connection_pool.clone())
+					.route(
+						"/register",
+						web::post().to(accounts::register::handle_registration),
+					)
+					.service(
+						web::resource("/account")
 							.wrap(auth_middleware.clone())
-							.route(web::post().to(meetings::init_session::handle_init_session)),
-					),
-				)
-				.service(
-					web::scope("/meetings/{meeting_id}")
-						.wrap(auth_middleware.clone())
-						.service(
-							web::resource("").route(
+							.route(web::delete().to(accounts::delete::handle_delete_account)),
+					)
+					.route("/login", web::post().to(auth::login::handle_login))
+					.service(
+						web::resource("/logout")
+							.wrap(auth_middleware.clone())
+							.route(web::post().to(auth::logout::handle_logout)),
+					)
+					.route(
+						"/accounts/uuid",
+						web::get().to(accounts::get_uuid::handle_get_uuid),
+					)
+					.service(
+						web::scope("/accounts/{uuid}")
+							.service(web::resource("").wrap(auth_middleware.clone()).route(
+								web::put().to(accounts::update_info::handle_update_user_account),
+							))
+							.service(
+								web::resource("/avatar")
+									.route(web::get().to(avatars::get_avatar::handle_get_avatar)),
+							)
+							.service(
+								web::resource("/avatar")
+									.wrap(auth_middleware.clone())
+									.route(web::post().to(avatars::upload::handle_upload_avatar)),
+							)
+							.service(
+								web::resource("/avatar")
+									.wrap(auth_middleware.clone())
+									.route(
+										web::delete()
+											.to(avatars::delete_avatar::handle_delete_avatar),
+									),
+							),
+					)
+					.service(
+						web::scope("/meetings").service(
+							web::resource("")
+								.wrap(auth_middleware.clone())
+								.route(web::post().to(meetings::init_session::handle_init_session)),
+						),
+					)
+					.service(
+						web::scope("/meetings/{meeting_id}")
+							.wrap(auth_middleware.clone())
+							.service(web::resource("").route(
 								web::get().to(
 									meetings::get_session_info::handle_get_meeting_session_info,
 								),
-							),
-						)
-						.service(
-							web::resource("/listener")
-								.route(web::post().to(meetings::add_listener::handle_add_listener)),
-						)
-						.service(
-							web::resource("/leave").route(
+							))
+							.service(
+								web::resource("/listener").route(
+									web::post().to(meetings::add_listener::handle_add_listener),
+								),
+							)
+							.service(web::resource("/leave").route(
 								web::post().to(meetings::leave::handle_leave_meeting_session),
+							))
+							.service(
+								web::resource("/presentation")
+									.route(web::post().to(
+										presentations::upload::handle_upload_presentation_slides,
+									))
+									.route(web::get().to(
+										presentations::get_presentation::handle_get_presentation,
+									)),
 							),
-						)
-						.service(
-							web::resource("/presentation").route(
-								web::post()
-									.to(presentations::upload::handle_upload_presentation_slides),
-							),
-						),
-				)
-		}
-	};
+					)
+			}
+		};
 
 	let server = HttpServer::new(create_app(
 		settings.clone(),
