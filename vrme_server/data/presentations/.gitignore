@@ -1,0 +1,5 @@
+# Ignore any presentation files
+*.png
+*.pdf
+*.ppt
+*.pptx

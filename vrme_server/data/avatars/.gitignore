@@ -1,0 +1,5 @@
+# Ignore any PNG files
+*.png
+
+# Except for the default avatar
+default.png
