@@ -69,8 +69,8 @@ fn check_content_type_is_png(field: &Field) -> Result<(), ServiceError> {
 	if field.content_type() == ContentType::png().deref() {
 		Ok(())
 	} else {
-		Err(ServiceError::UnprocessableEntity(
-			"`Content-Type` must be specified".to_string(),
+		Err(ServiceError::UnsupportedMediaType(
+			"Avatar can only be PNG file format".to_string(),
 		))
 	}
 }
