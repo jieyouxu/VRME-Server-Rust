@@ -24,6 +24,9 @@ directory into `vrme_server`:
 cd vrme_server
 ```
 
+All of the instructions below assume that you are under the `vrme_server`
+directory already.
+
 ### Code Documentation
 
 If you want to generate and render code documentation for `vrme_server`, run
@@ -50,10 +53,8 @@ And the docs will be generated under `target/doc`.
 
 ## API Documentation
 
-Source under `docs/`.
-
-View the live deployment at
-[VRME-Server-Rust](https://jieyouxu.github.io/VRME-Server-Rust/).
+Available at
+[VRME-API-Documentation](https://github.com/jieyouxu/VRME-API-Documentation).
 
 ## Logging Level
 
@@ -132,4 +133,4 @@ Environment variables take precedence over `RUN_MODE`-specific configuration
 files, which in turn take precedence over the default shared configuration
 file.
 
-See the `src/config` module for the most accurate configuration options.
+See the `src/settings` module for the most accurate configuration options.
