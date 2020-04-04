@@ -162,7 +162,11 @@ async fn main() -> std::io::Result<()> {
 									))
 									.route(web::get().to(
 										presentations::get_presentation::handle_get_presentation,
-									)),
+									))
+									.route(
+										web::delete()
+											.to(presentations::delete::handle_delete_presentation),
+									),
 							),
 					)
 			}
