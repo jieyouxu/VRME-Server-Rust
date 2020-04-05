@@ -69,7 +69,7 @@ const GET_SESSION_INFO_QUERY: &str = r#"
     FROM
         meeting_sessions
     WHERE
-        meeting_id = $1::UUID
+        presenter_id = $1::UUID
     ;
 "#;
 
@@ -96,7 +96,7 @@ async fn create_new_session_or_return_existing(
 		let get_session_statement = client.prepare(GET_SESSION_INFO_QUERY).await?;
 
 		let row = client
-			.query_one(&get_session_statement, &[&meeting_id])
+			.query_one(&get_session_statement, &[&presenter_id])
 			.await?;
 
 		(row.get(0), row.get(1), row.get(2), row.get(3))
