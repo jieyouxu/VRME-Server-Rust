@@ -71,15 +71,19 @@ async fn create_new_session_or_return_existing(
 	let listeners: Vec<Uuid> = Vec::new();
 	let started_at = chrono::Utc::now().naive_utc();
 
-	let row = client
-		.query_one(
+	let rows = client
+		.query(
 			&statement,
 			&[&meeting_id, &presenter_id, &listeners, &started_at],
 		)
 		.await?;
 
-	let (meeting_id, presenter_id, listeners_ids, started_at) =
-		(row.get(0), row.get(1), row.get(2), row.get(3));
+	let (meeting_id, presenter_id, listeners_ids, started_at) = (
+		rows[0].get(0),
+		rows[0].get(1),
+		rows[0].get(2),
+		rows[0].get(3),
+	);
 
 	Ok(MeetingSessionResponsePayload {
 		meeting_id,
