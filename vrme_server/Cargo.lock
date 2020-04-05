@@ -835,16 +835,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "evmap"
-version = "9.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2779fc3dc8f7f45e84c27bd9041286753f2b23b674a00ad2ccf3fe8aa87216b9"
-dependencies = [
- "hashbag",
- "smallvec",
-]
-
-[[package]]
 name = "failure"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1050,12 +1040,6 @@ dependencies = [
  "tokio",
  "tokio-util 0.2.0",
 ]
-
-[[package]]
-name = "hashbag"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "452b31b3ffe7cf13de531eefae493301c85995a953c808d7c79a8f45abae0706"
 
 [[package]]
 name = "heck"
@@ -2305,7 +2289,6 @@ dependencies = [
  "derive_more",
  "env_logger",
  "envy",
- "evmap",
  "futures",
  "human-panic",
  "log",

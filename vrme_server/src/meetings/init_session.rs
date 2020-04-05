@@ -49,7 +49,7 @@ const UPSERT_MEETING_SESSION_QUERY: &str = r#"
         $1::UUID,
         $2::UUID,
         $3::UUID[],
-        $3::TIMESTAMP
+        $4::TIMESTAMP
     )
     ON CONFLICT DO NOTHING
     RETURNING
