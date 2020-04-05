@@ -59,6 +59,20 @@ const UPSERT_MEETING_SESSION_QUERY: &str = r#"
     ;
 "#;
 
+const GET_SESSION_INFO_QUERY: &str = r#"
+    SELECT
+        meeting_id,
+        presenter,
+        listeners,
+        started_at
+    );
+    FROM
+        meeting_sessions
+    WHERE
+        meeting_id = $1::UUID
+    ;
+"#;
+
 async fn create_new_session_or_return_existing(
 	client: &Client,
 	presenter_id: &Uuid,
@@ -69,15 +83,32 @@ async fn create_new_session_or_return_existing(
 	let listeners: Vec<Uuid> = Vec::new();
 	let started_at = chrono::Utc::now().naive_utc();
 
-	let row = client
-		.query_one(
+	let rows = client
+		.query(
 			&upsert_statement,
 			&[&meeting_id, &presenter_id, &listeners, &started_at],
 		)
 		.await?;
 
-	let (meeting_id, presenter_id, listeners_ids, started_at) =
-		(row.get(0), row.get(1), row.get(2), row.get(3));
+	let (meeting_id, presenter_id, listeners_ids, started_at) = if rows.is_empty() {
+		// Conflict: a meeting session already is associated with the `presenter_id`.
+
+		let get_session_statement = client.prepare(GET_SESSION_INFO_QUERY).await?;
+
+		let row = client
+			.query_one(&get_session_statement, &[&meeting_id])
+			.await?;
+
+		(row.get(0), row.get(1), row.get(2), row.get(3))
+	} else {
+		// New meeting session created successfully.
+		(
+			rows[0].get(0),
+			rows[0].get(1),
+			rows[0].get(2),
+			rows[0].get(3),
+		)
+	};
 
 	Ok(MeetingSessionResponsePayload {
 		meeting_id,
