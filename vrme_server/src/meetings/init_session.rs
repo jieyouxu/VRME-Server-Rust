@@ -51,20 +51,13 @@ const UPSERT_MEETING_SESSION_QUERY: &str = r#"
         $3::UUID[],
         $4::TIMESTAMP
     )
-    ON CONFLICT DO NOTHING;
-"#;
-
-const GET_SESSION_INFO_QUERY: &str = r#"
-    SELECT
+    RETURNING
+    (
         meeting_id,
         presenter,
         listeners,
         started_at
-    FROM
-        meeting_sessions
-    WHERE
-        meeting_id = $1::UUID
-    ;
+    );
 "#;
 
 async fn create_new_session_or_return_existing(
@@ -77,23 +70,15 @@ async fn create_new_session_or_return_existing(
 	let listeners: Vec<Uuid> = Vec::new();
 	let started_at = chrono::Utc::now().naive_utc();
 
-	client
-		.query(
+	let row = client
+		.query_one(
 			&upsert_statement,
 			&[&meeting_id, &presenter_id, &listeners, &started_at],
 		)
 		.await?;
 
-	let get_session_statement = client.prepare(GET_SESSION_INFO_QUERY).await?;
-
-	let rows = client.query(&get_session_statement, &[&meeting_id]).await?;
-
-	let (meeting_id, presenter_id, listeners_ids, started_at) = (
-		rows[0].get(0),
-		rows[0].get(1),
-		rows[0].get(2),
-		rows[0].get(3),
-	);
+	let (meeting_id, presenter_id, listeners_ids, started_at) =
+		(row.get(0), row.get(1), row.get(2), row.get(3));
 
 	Ok(MeetingSessionResponsePayload {
 		meeting_id,
