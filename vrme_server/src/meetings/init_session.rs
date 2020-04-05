@@ -51,32 +51,42 @@ const UPSERT_MEETING_SESSION_QUERY: &str = r#"
         $3::UUID[],
         $4::TIMESTAMP
     )
-    ON CONFLICT DO NOTHING
-    RETURNING
-    (
+    ON CONFLICT DO NOTHING;
+"#;
+
+const GET_SESSION_INFO_QUERY: &str = r#"
+    SELECT
         meeting_id,
         presenter,
         listeners,
         started_at
-    );
+    FROM
+        meeting_sessions
+    WHERE
+        meeting_id = $1::UUID
+    ;
 "#;
 
 async fn create_new_session_or_return_existing(
 	client: &Client,
 	presenter_id: &Uuid,
 ) -> Result<MeetingSessionResponsePayload, ServiceError> {
-	let statement = client.prepare(UPSERT_MEETING_SESSION_QUERY).await?;
+	let upsert_statement = client.prepare(UPSERT_MEETING_SESSION_QUERY).await?;
 
 	let meeting_id = Uuid::new_v4();
 	let listeners: Vec<Uuid> = Vec::new();
 	let started_at = chrono::Utc::now().naive_utc();
 
-	let rows = client
+	client
 		.query(
-			&statement,
+			&upsert_statement,
 			&[&meeting_id, &presenter_id, &listeners, &started_at],
 		)
 		.await?;
+
+	let get_session_statement = client.prepare(GET_SESSION_INFO_QUERY).await?;
+
+	let rows = client.query(&get_session_statement, &[&meeting_id]).await?;
 
 	let (meeting_id, presenter_id, listeners_ids, started_at) = (
 		rows[0].get(0),
