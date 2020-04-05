@@ -5,6 +5,7 @@ use crate::service_errors::ServiceError;
 use crate::types::hashed_password::HASHED_PASSWORD_LEN;
 
 /// Base64-encoded client-side password hash.
+#[derive(Debug)]
 pub struct ClientHashedPassword {
 	encoded_hash: String,
 }
@@ -41,5 +42,37 @@ impl ClientHashedPassword {
 		let raw = base64::decode(&self.encoded_hash)?;
 		hash.copy_from_slice(&raw[..HASHED_PASSWORD_LEN]);
 		Ok(hash)
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	macro_rules! matches(
+        ($e:expr, $p:pat) => (
+            match $e {
+                $p => true,
+                _ => false
+            }
+        )
+    );
+
+	#[test]
+	fn test_empty_returns_bad_request() {
+		let result = ClientHashedPassword::new("");
+		assert!(result.is_err());
+
+		let err = result.unwrap_err();
+		assert!(matches!(err, ServiceError::BadRequest(_)));
+	}
+
+	#[test]
+	fn test_invalid_base64_length() {
+		let result = ClientHashedPassword::new(&"a".repeat(5));
+		assert!(result.is_err());
+
+		let err = result.unwrap_err();
+		assert!(matches!(err, ServiceError::BadRequest(_)));
 	}
 }

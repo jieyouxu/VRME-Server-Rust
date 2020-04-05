@@ -14,7 +14,7 @@ use tokio_pg_mapper::Error as TPGMError;
 use tokio_postgres::error::Error as TPGError;
 
 /// Client-facing service errors.
-#[derive(Debug, Display, Serialize)]
+#[derive(Debug, Display, Serialize, PartialEq)]
 pub enum ServiceError {
 	#[display(fmt = "internal server error: {}", "_0")]
 	InternalServerError(String),
