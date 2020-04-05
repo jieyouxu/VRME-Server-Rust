@@ -66,7 +66,6 @@ const GET_SESSION_INFO_QUERY: &str = r#"
         presenter,
         listeners,
         started_at
-    );
     FROM
         meeting_sessions
     WHERE
