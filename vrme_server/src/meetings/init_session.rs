@@ -52,12 +52,11 @@ const UPSERT_MEETING_SESSION_QUERY: &str = r#"
         $4::TIMESTAMP
     )
     RETURNING
-    (
         meeting_id,
         presenter,
         listeners,
         started_at
-    );
+    ;
 "#;
 
 async fn create_new_session_or_return_existing(
