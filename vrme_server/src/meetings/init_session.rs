@@ -69,7 +69,7 @@ const GET_SESSION_INFO_QUERY: &str = r#"
     FROM
         meeting_sessions
     WHERE
-        presenter_id = $1::UUID
+        presenter = $1::UUID
     ;
 "#;
 
